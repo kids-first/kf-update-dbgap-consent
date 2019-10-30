@@ -13,6 +13,12 @@ ACL Rules
   status file that has status "released". (If phs1.v1.p2 is marked as released
   and phs1.v2.p1 exists and is not yet marked released, use phs1.v1.p2)
 
+* The Study entity in the dataservice should have its version set to the
+  version found in the used sample status file.
+
+* For all samples in the sample status file which are not found in the
+  dataservice, return or display an alert.
+
 * Dataservice biospecimens whose samples are found in the sample status file
   with status "Loaded" should have their consent_type dbgap_consent_code fields
   set as indicated in the file.
@@ -35,9 +41,6 @@ ACL Rules
       multiple contributing specimens with non-identical access control codes,
       that genomic file should get {default_acl}. Return or display an alert
       for each such case.
-
-* The Study entity in the dataservice should have its version set to the
-  version found in the used sample status file.
 """
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -133,7 +136,10 @@ class ConsentProcessor:
             if not e["visible"]
         )
 
-        # warn for missing samples
+        """
+        Rule: For all samples in the sample status file which are not found in
+        the dataservice, return or display an alert.
+        """
         specimen_extids = set(
             bs["external_sample_id"] for bs in storage["biospecimens"].values()
         )
