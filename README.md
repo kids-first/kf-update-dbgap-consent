@@ -19,7 +19,7 @@
   version found in the used sample status file.
 
 * For all samples in the sample status file which are not found in the
-  dataservice, return or display an alert.
+  dataservice, **return or display an alert**.
 
 * Dataservice biospecimens whose samples are found in the sample status file
   with status "Loaded" should have their consent_type dbgap_consent_code fields
