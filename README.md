@@ -1,4 +1,4 @@
-# dbGaP sample consent status processor
+# Kids First dbGaP sample consent status processor
 
 ## ACL Definitions
 
