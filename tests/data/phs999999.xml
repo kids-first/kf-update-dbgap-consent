@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DbGap xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.ncbi.nlm.nih.gov/projects/gap/xsd/dbGaPSample.xsd">
+<Study accession="phs999999.v2.p1" study_handle="TEST" study_name="Blah blah blah blah: A Kids First Project" registration_status="completed_by_gpa" has_sra="true" ic="NCI" >
+</Study>
+</DbGap>

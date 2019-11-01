@@ -60,9 +60,11 @@ class ConsentProcessor:
         return e["_links"][field].rsplit("/", 1)[1]
 
     def get_accession(self, study_id):
-        study = (
-            Session().get(f"{self.host}/studies/{study_id}").json()["results"]
-        )
+        resp = Session().get(f"{self.host}/studies/{study_id}")
+        if resp.status_code != 200:
+            raise Exception(f"Study {study_id} not found in dataservice")
+        study = resp.json()["results"]
+
         if study.get("data_access_authority", "").lower() == "dbgap":
             return study["external_id"], study["version"]
         else:

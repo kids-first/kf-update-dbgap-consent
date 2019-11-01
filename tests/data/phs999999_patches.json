@@ -1,0 +1,63 @@
+{
+    "biospecimen-diagnoses": {
+        "BD_11111111": {
+            "visible": false
+        }
+    },
+    "biospecimen-genomic-files": {
+        "BG_11111111": {
+            "visible": false
+        }
+    },
+    "biospecimens": {
+        "BS_11111111": {
+            "visible": false
+        },
+        "BS_22222222": {
+            "consent_type": "LOL",
+            "dbgap_consent_code": "phs999999.c1"
+        },
+        "BS_33333333": {
+            "consent_type": "HMB",
+            "dbgap_consent_code": "phs999999.c2"
+        }
+    },
+    "genomic-files": {
+        "GF_11111111": {
+            "acl": [
+                "SD_00000000",
+                "phs999999.c999"
+            ],
+            "visible": false
+        },
+        "GF_22222222": {
+            "acl": [
+                "SD_00000000",
+                "phs999999.c1",
+                "phs999999.c999"
+            ]
+        },
+        "GF_33333333": {
+            "acl": [
+                "SD_00000000",
+                "phs999999.c2",
+                "phs999999.c999"
+            ]
+        }
+    },
+    "sequencing-experiment-genomic-files": {
+        "SG_11111111": {
+            "visible": false
+        }
+    },
+    "sequencing-experiments": {
+        "SE_11111111": {
+            "visible": false
+        }
+    },
+    "studies": {
+        "SD_00000000": {
+            "version": "v1.p1"
+        }
+    }
+}
