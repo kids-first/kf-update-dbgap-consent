@@ -60,9 +60,11 @@ class ConsentProcessor:
         return e["_links"][field].rsplit("/", 1)[1]
 
     def get_accession(self, study_id):
-        study = (
-            Session().get(f"{self.host}/studies/{study_id}").json()["results"]
-        )
+        resp = Session().get(f"{self.host}/studies/{study_id}")
+        if resp.status_code != 200:
+            raise Exception(f"Study {study_id} not found in dataservice")
+        study = resp.json()["results"]
+
         if study.get("data_access_authority", "").lower() == "dbgap":
             return study["external_id"], study["version"]
         else:
@@ -99,26 +101,26 @@ class ConsentProcessor:
         }
 
         print("Scraping the dataservice...")
-        hidden_genomic_files = set(
-            yield_kfids(
-                self.host,
-                "genomic-files",
-                {"study_id": study_id, "visible": False},
-                True,
-            )
-        )
+        storage = defaultdict(dict)
+
         with ThreadPoolExecutor() as tpex:
 
-            def entities_dict(endpoint, filter):
+            def entities_dict(endpoint, filt):
                 return {
                     e["kf_id"]: e
-                    for e in yield_entities(self.host, endpoint, filter, True)
+                    for e in yield_entities(self.host, endpoint, filt, True)
                 }
 
-            storage = {}
             futures = {
-                tpex.submit(entities_dict, k, {"study_id": study_id}): k
-                for k in ["biospecimens", "biospecimen-genomic-files"]
+                tpex.submit(entities_dict, endpoint, filt): endpoint
+                for endpoint, filt in [
+                    ("biospecimens", {"study_id": study_id}),
+                    ("biospecimen-genomic-files", {"study_id": study_id}),
+                    (
+                        "genomic-files",
+                        {"study_id": study_id, "visible": False},
+                    ),
+                ]
             }
             for f in as_completed(futures):
                 storage[futures[f]] = f.result()
@@ -130,10 +132,13 @@ class ConsentProcessor:
             gfid = self._link(e, "genomic_file")
             gfids_bsids[gfid].add(bsid)
 
-        hidden_specimens = set(
-            kfid
-            for kfid, e in storage["biospecimens"].items()
+        hidden_specimens = {
+            k: e
+            for k, e in storage["biospecimens"].items()
             if not e["visible"]
+        }
+        hidden_genomic_files = set(
+            k for k, e in storage["genomic-files"].items() if not e["visible"]
         )
 
         """
@@ -173,7 +178,7 @@ class ConsentProcessor:
                     "dbgap_consent_code": None,
                     "visible": False,
                 }
-                hidden_specimens.add(kfid)
+                hidden_specimens[kfid] = bs
 
         """
         Rule: Each reported custom consent code should be added to each genomic
@@ -220,15 +225,49 @@ class ConsentProcessor:
         should also be hidden.
         """
         descendants_of_hidden_specimens = find_descendants_by_kfids(
-            self.host, "biospecimens", hidden_specimens, False
+            self.host,
+            "biospecimens",
+            hidden_specimens,
+            ignore_gfs_with_hidden_external_contribs=False,
+            kfids_only=False,
         )
-        descendants_of_hidden_specimens.pop("biospecimens", None)
-        for endpoint, kfids in descendants_of_hidden_specimens.items():
-            for k in kfids:
+        for endpoint, entities in descendants_of_hidden_specimens.items():
+            for k, e in entities.items():
+                storage[endpoint][k] = e
                 p = patches.setdefault(endpoint, dict()).setdefault(k, dict())
                 p["visible"] = False
                 if endpoint == "genomic-files":
                     p["acl"] = sorted(default_acl)
         print()
+
+        # remove known unneeded patches
+
+        def cmp(a, b):
+            if isinstance(a, list) and isinstance(b, list):
+                return sorted(a) == sorted(b)
+            else:
+                return a == b
+
+        patches = {
+            endpoint: {
+                kfid: {
+                    k: v
+                    for k, v in patch.items()
+                    if not (
+                        (endpoint in storage)
+                        and (kfid in storage[endpoint])
+                        and (k in storage[endpoint][kfid])
+                        and (cmp(storage[endpoint][kfid][k], v))
+                    )
+                }
+                for kfid, patch in ep_patches.items()
+            }
+            for endpoint, ep_patches in patches.items()
+        }
+        patches = {
+            endpoint: {k: v for k, v in ep_patches.items() if v}
+            for endpoint, ep_patches in patches.items()
+        }
+        patches = {k: v for k, v in patches.items() if v}
 
         return patches, alerts
