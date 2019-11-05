@@ -14,7 +14,13 @@ jobs:
       - checkout
 
       - run:
-          name: Start server
+          name: install dockerize
+          command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+          environment:
+            DOCKERIZE_VERSION: v0.6.1
+
+      - run:
+          name: start local dataservice
           command: |
             git clone --depth 1 https://github.com/kids-first/kf-api-dataservice.git
             cd kf-api-dataservice
@@ -32,8 +38,9 @@ jobs:
             - PG_NAME: "test"
 
       - run:
-          name: Do Tests
+          name: run tests
           command: |
+            dockerize -wait http://localhost:5000 -timeout 5m
             python3 -m venv venv
             source venv/bin/activate
             pip install -r dev-requirements.txt
