@@ -1,5 +1,11 @@
 # Kids First dbGaP sample consent status processor
 
+## Purpose
+
+Gets sample consent codes for a study from dbGaP (`https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/GetSampleStatus.cgi?study_id=<STUDY_PHS_ID>&rettype=xml`) and apply the appropriate access control settings as described below to related dataservice biospecimens and their descendants.
+
+---
+
 ## ACL Definitions
 
 * study_kfid: (e.g. "SD_12345678")
