@@ -53,14 +53,15 @@ from kf_utils.dbgap.release import get_latest_sample_status
 
 
 class ConsentProcessor:
-    def __init__(self, host):
-        self.host = host
+    def __init__(self, api_url, db_url=None):
+        self.api_url = api_url
+        self.db_url = db_url
 
     def _link(self, e, field):
         return e["_links"][field].rsplit("/", 1)[1]
 
     def get_accession(self, study_id):
-        resp = Session().get(f"{self.host}/studies/{study_id}")
+        resp = Session().get(f"{self.api_url}/studies/{study_id}")
         if resp.status_code != 200:
             raise Exception(f"Study {study_id} not found in dataservice")
         study = resp.json()["results"]
@@ -100,37 +101,46 @@ class ConsentProcessor:
             s["@submitted_sample_id"]: s for s in study["SampleList"]["Sample"]
         }
 
-        print("Scraping the dataservice...")
         storage = defaultdict(dict)
-
-        with ThreadPoolExecutor() as tpex:
-
-            def entities_dict(endpoint, filt):
-                return {
-                    e["kf_id"]: e
-                    for e in yield_entities(self.host, endpoint, filt, True)
-                }
-
-            futures = {
-                tpex.submit(entities_dict, endpoint, filt): endpoint
-                for endpoint, filt in [
-                    ("biospecimens", {"study_id": study_id}),
-                    ("biospecimen-genomic-files", {"study_id": study_id}),
-                    (
-                        "genomic-files",
-                        {"study_id": study_id, "visible": False},
-                    ),
-                ]
-            }
-            for f in as_completed(futures):
-                storage[futures[f]] = f.result()
-        print()
-
         gfids_bsids = defaultdict(set)
-        for e in storage["biospecimen-genomic-files"].values():
-            bsid = self._link(e, "biospecimen")
-            gfid = self._link(e, "genomic_file")
-            gfids_bsids[gfid].add(bsid)
+
+        if self.db_url:
+            print("Querying the database...")
+            storage = find_descendants_by_kfids(
+                self.db_url, "studies", [study_id], False, kfids_only=False,
+            )
+            for e in storage["biospecimen-genomic-files"].values():
+                bsid = e["biospecimen_id"]
+                gfid = e["genomic_file_id"]
+                gfids_bsids[gfid].add(bsid)
+        else:
+            print("Scraping the dataservice...")
+            with ThreadPoolExecutor() as tpex:
+
+                def entities_dict(endpoint, filt):
+                    return {
+                        e["kf_id"]: e
+                        for e in yield_entities(self.api_url, endpoint, filt, True)
+                    }
+
+                futures = {
+                    tpex.submit(entities_dict, endpoint, filt): endpoint
+                    for endpoint, filt in [
+                        ("biospecimens", {"study_id": study_id}),
+                        ("biospecimen-genomic-files", {"study_id": study_id}),
+                        (
+                            "genomic-files",
+                            {"study_id": study_id, "visible": False},
+                        ),
+                    ]
+                }
+                for f in as_completed(futures):
+                    storage[futures[f]] = f.result()
+            print()
+            for e in storage["biospecimen-genomic-files"].values():
+                bsid = self._link(e, "biospecimen")
+                gfid = self._link(e, "genomic_file")
+                gfids_bsids[gfid].add(bsid)
 
         hidden_specimens = {
             k: e
@@ -225,12 +235,13 @@ class ConsentProcessor:
         should also be hidden.
         """
         descendants_of_hidden_specimens = find_descendants_by_kfids(
-            self.host,
+            self.db_url or self.api_url,
             "biospecimens",
-            hidden_specimens,
+            list(hidden_specimens.keys()),
             ignore_gfs_with_hidden_external_contribs=False,
             kfids_only=False,
         )
+        descendants_of_hidden_specimens["biospecimens"] = hidden_specimens
         for endpoint, entities in descendants_of_hidden_specimens.items():
             for k, e in entities.items():
                 storage[endpoint][k] = e
