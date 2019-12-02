@@ -120,7 +120,9 @@ class ConsentProcessor:
                 def entities_dict(endpoint, filt):
                     return {
                         e["kf_id"]: e
-                        for e in yield_entities(self.api_url, endpoint, filt, True)
+                        for e in yield_entities(
+                            self.api_url, endpoint, filt, True
+                        )
                     }
 
                 futures = {
@@ -143,9 +145,7 @@ class ConsentProcessor:
                 gfids_bsids[gfid].add(bsid)
 
         hidden_specimens = {
-            k: e
-            for k, e in storage["biospecimens"].items()
-            if not e["visible"]
+            k: e for k, e in storage["biospecimens"].items() if not e["visible"]
         }
         hidden_genomic_files = set(
             k for k, e in storage["genomic-files"].items() if not e["visible"]
