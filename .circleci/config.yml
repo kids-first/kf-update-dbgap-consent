@@ -43,5 +43,6 @@ jobs:
             python3 -m venv client_venv
             source client_venv/bin/activate
             pip install -r dev-requirements.txt
+            black --check --line-length 80 *.py tests/*.py
             dockerize -wait http://localhost:5000 -timeout 5m
             pytest tests
