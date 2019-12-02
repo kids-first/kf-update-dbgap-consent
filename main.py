@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import argparse
 from argparse import RawTextHelpFormatter
 from pprint import pprint
@@ -23,6 +24,13 @@ if __name__ == "__main__":
         ),
     )
     parser.add_argument(
+        "--db_url",
+        help=(
+            "Optional DB connection URL for direct access.\n"
+            " - e.g. postgres://{USER_NAME}:{PASSWORD}@kf-dataservice-api-prd-20q19-9-11.c3siovbugjym.us-east-1.rds.amazonaws.com:5432/kfpostgresprd"  # noqa E501
+        ),
+    )
+    parser.add_argument(
         "--dry_run",
         action="store_true",
         default=False,
@@ -31,9 +39,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print(f"Args: {args.__dict__}")
 
-    patches, alerts = ConsentProcessor(args.server).get_patches_for_study(
-        args.study
-    )
+    patches, alerts = ConsentProcessor(
+        args.server, args.db_url
+    ).get_patches_for_study(args.study)
 
     all_patches = {}
     for endpoint_patches in patches.values():
