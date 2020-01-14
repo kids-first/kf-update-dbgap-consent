@@ -12,6 +12,12 @@ Gets sample consent codes for a study from dbGaP (`https://www.ncbi.nlm.nih.gov/
 
 ---
 
+## Running the Tool
+
+See `python main.py --help` for details.
+
+---
+
 ## ACL Definitions
 
 * study_kfid: (e.g. "SD_12345678")
