@@ -76,6 +76,28 @@ def test_sample_status(requests_mock):
     assert not alerts
     compare(patches, expected_patches)
 
+    # A visible GF has controlled_access set to null
+    Session().patch(
+        f"{host}/genomic-files/GF_22222222", json={"controlled_access": None}
+    )
+    patches, alerts = sample_status.ConsentProcessor(
+        host
+    ).get_patches_for_study(study_id)
+    assert alerts == [
+        "ALERT: GF GF_22222222 is visible but has controlled_access set to null"
+        " instead of True/False."
+    ]
+
+    # A hidden GF with controlled_access set to null gets empty acl
+    # (harder to test because local dataservice doesn't store acl)
+    Session().patch(
+        f"{host}/genomic-files/GF_22222222", json={"visible": False}
+    )
+    patches, alerts = sample_status.ConsentProcessor(
+        host
+    ).get_patches_for_study(study_id)
+    assert "GF_22222222" not in patches["genomic-files"]
+
     # A biospecimen is missing: patches should be absent relevant parts + alert
     Session().delete(f"{host}/biospecimens/BS_22222222")
     patches, alerts = sample_status.ConsentProcessor(

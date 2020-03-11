@@ -47,15 +47,20 @@ See `python main.py --help` for details.
   `dbgap_consent_code` fields set as indicated in the file.
 
 * All other dataservice biospecimens should be hidden in the dataservice and
-  their `consent_type` and `dbgap_consent_code` fields should be set to
-  `null`.
+  their `consent_type` and `dbgap_consent_code` fields should be set to `null`.
 
 * If a biospecimen is hidden in the dataservice, its descendants (genomic
   files, read groups, etc) should also be hidden.
 
 * All non-hidden (aka visible) genomic files in the dataservice with their
-  `controlled_access` field set to **False** or **null** should get
-  `{open_acl}`.
+  `controlled_access` field set to **False** should get `{open_acl}`.
+
+* All non-hidden (aka visible) genomic files in the dataservice with their
+  controlled_access field set to **null** should **return or display a QC
+  failure alert**.
+
+* All hidden genomic files in the dataservice with their controlled_access
+  field set to **null** should get `{empty_acl}`.
 
 * All other genomic files in the dataservice should get `{default_acl}`.
 
@@ -68,5 +73,5 @@ See `python main.py --help` for details.
 
   * Until indexd supports "and" composition rules, if a genomic file has
     multiple contributing specimens with non-identical access control codes,
-    that genomic file should get `{default_acl}`. **Return or display an
-    alert for each such case.**
+    that genomic file should get `{default_acl}`. **Return or display an alert
+    for each such case.**
