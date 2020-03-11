@@ -5,6 +5,9 @@
         }
     },
     "biospecimen-genomic-files": {
+        "BG_00000000": {
+            "visible": false
+        },
         "BG_11111111": {
             "visible": false
         }
@@ -23,6 +26,13 @@
         }
     },
     "genomic-files": {
+        "GF_00000000": {
+            "acl": [
+                "SD_00000000",
+                "phs999999.c999"
+            ],
+            "visible": false
+        },
         "GF_11111111": {
             "acl": [
                 "SD_00000000",
@@ -43,9 +53,15 @@
                 "phs999999.c2",
                 "phs999999.c999"
             ]
+        },
+        "GF_44444444": {
+            "acl": ["*"]
         }
     },
     "sequencing-experiment-genomic-files": {
+        "SG_00000000": {
+            "visible": false
+        },
         "SG_11111111": {
             "visible": false
         }
