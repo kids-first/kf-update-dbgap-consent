@@ -1,46 +1,54 @@
 """
-ACL Definitions
+## ACL Definitions
 
-study_kfid: (e.g. "SD_12345678")
-study_phs: (e.g. "phs001138")
-root_phs_acl: f"{study_phs}.c999"    (This gives root access to the study)
-consent_acl: f"{study_phs}.c{code}"  (Not c999 which is a reserved admin code)
-default_acl: [study_kfid, root_phs_acl]
+* study_kfid: (e.g. "SD_12345678")
+* study_phs: (e.g. "phs001138")
+* root_phs_acl: f"{study_phs}.c999" (This gives root access to the study)
+* consent_acl: f"{study_phs}.c{code}" (Not c999 which is a reserved admin code)
+* default_acl: [study_kfid, root_phs_acl]
+* open_acl: ["*"]
 
-ACL Rules
+## ACL Rules
 
 * The tool should discover and use the latest version of the study’s sample
-  status file that has status "released". (If phs1.v1.p2 is marked as released
-  and phs1.v2.p1 exists and is not yet marked released, use phs1.v1.p2)
+  status file that has status "released". (e.g. if phsXXX.*v1.p2* is marked as
+  released and phsXXX.*v2.p1* exists and is not yet marked released, use
+  phsXXX.*v1.p2*)
 
 * The Study entity in the dataservice should have its version set to the
   version found in the used sample status file.
 
 * For all samples in the sample status file which are not found in the
-  dataservice, return or display an alert.
+  dataservice, **return or display an alert**.
 
 * Dataservice biospecimens whose samples are found in the sample status file
-  with status "Loaded" should have their consent_type dbgap_consent_code fields
-  set as indicated in the file.
+  with status "Loaded" should have their `consent_type` and
+  `dbgap_consent_code` fields set as indicated in the file.
 
 * All other dataservice biospecimens should be hidden in the dataservice and
-  their "consent_type" and "dbgap_consent_code" fields should be set to null.
+  their `consent_type` and `dbgap_consent_code` fields should be set to
+  `null`.
 
-    * If a biospecimen is hidden in the dataservice, its descendants (genomic
-      files, read groups, etc) should also be hidden.
+* If a biospecimen is hidden in the dataservice, its descendants (genomic
+  files, read groups, etc) should also be hidden.
 
-* All genomic files in the dataservice should get {default_acl}.
+* All non-hidden (aka visible) genomic files in the dataservice with their
+  `controlled_access` field set to **False** or **null** should get
+  `{open_acl}`.
 
-* Each reported custom consent code should be added to each genomic file with
-  contribution from any biospecimen(s) in the study with the reported sample
-  external ID by adding the {consent_acl} in addition to the default IF AND
-  ONLY IF the genomic file and its contributing biospecimen(s) are all visible
-  in the dataservice, with the following exception:
+* All other genomic files in the dataservice should get `{default_acl}`.
 
-    * Until indexd supports "and" composition rules, if a genomic file has
-      multiple contributing specimens with non-identical access control codes,
-      that genomic file should get {default_acl}. Return or display an alert
-      for each such case.
+* Each reported sample consent code should be added to each
+  `controlled_access=True` genomic file that has contribution from any
+  biospecimen(s) in the study with the reported sample external ID by adding
+  the `{consent_acl}` in addition to the default **IF AND ONLY IF** the genomic
+  file and its contributing biospecimen(s) are all visible in the dataservice,
+  **with the following exception:**
+
+  * Until indexd supports "and" composition rules, if a genomic file has
+    multiple contributing specimens with non-identical access control codes,
+    that genomic file should get `{default_acl}`. **Return or display an
+    alert for each such case.**
 """
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -78,6 +86,7 @@ class ConsentProcessor:
         study_phs, study_version = self.get_accession(study_id)
         print(f"Found accession ID: {study_phs}")
         default_acl = {study_id, f"{study_phs}.c999"}
+        open_acl = {"*"}
         alerts = []
         patches = defaultdict(dict)
 
@@ -130,14 +139,11 @@ class ConsentProcessor:
                     for endpoint, filt in [
                         ("biospecimens", {"study_id": study_id}),
                         ("biospecimen-genomic-files", {"study_id": study_id}),
-                        (
-                            "genomic-files",
-                            {"study_id": study_id, "visible": False},
-                        ),
+                        ("genomic-files", {"study_id": study_id}),
                     ]
                 }
                 for f in as_completed(futures):
-                    storage[futures[f]] = f.result()
+                    storage[futures[f]].update(f.result())
             print()
             for e in storage["biospecimen-genomic-files"].values():
                 bsid = self._link(e, "biospecimen")
@@ -191,6 +197,12 @@ class ConsentProcessor:
                 hidden_specimens[kfid] = bs
 
         """
+        Rule: All visible genomic files in the dataservice with their
+        controlled_access field set to False should get {open_acl}.
+
+        Rule: All other genomic files in the dataservice should get
+        {default_acl}.
+
         Rule: Each reported custom consent code should be added to each genomic
         file that has contribution from any biospecimen(s) in the study with
         the reported sample external ID by adding the {consent_acl} in addition
@@ -206,27 +218,30 @@ class ConsentProcessor:
                 for k in bsids
             )
             if (gfid not in hidden_genomic_files) and all_biospecimens_visible:
-                """
-                Rule: ...with the following exception: Until indexd supports
-                "and" composition rules, if a genomic file has multiple
-                contributing specimens with non-identical access control codes,
-                that genomic file should get {default_acl}. Return or display
-                an alert for each such case.
-                """
-                all_biospecimens_same_code = len(biospecimen_codes) == 1
-                if all_biospecimens_same_code:
-                    patches["genomic-files"][gfid] = {
-                        "acl": sorted(default_acl | biospecimen_codes)
-                    }
+                if not storage["genomic-files"][gfid]["controlled_access"]:
+                    patches["genomic-files"][gfid] = {"acl": sorted(open_acl)}
                 else:
-                    alerts.append(
-                        f"ALERT: GF {gfid} has inconsistent sample access"
-                        f" codes {biospecimen_codes}"
-                    )
-                    print(alerts[-1])
-                    patches["genomic-files"][gfid] = {
-                        "acl": sorted(default_acl)
-                    }
+                    """
+                    Rule: ...with the following exception: Until indexd
+                    supports "and" composition rules, if a genomic file has
+                    multiple contributing specimens with non-identical access
+                    control codes, that genomic file should get {default_acl}.
+                    Return or display an alert for each such case.
+                    """
+                    all_biospecimens_same_code = len(biospecimen_codes) == 1
+                    if all_biospecimens_same_code:
+                        patches["genomic-files"][gfid] = {
+                            "acl": sorted(default_acl | biospecimen_codes)
+                        }
+                    else:
+                        alerts.append(
+                            f"ALERT: GF {gfid} has inconsistent sample access"
+                            f" codes {biospecimen_codes}"
+                        )
+                        print(alerts[-1])
+                        patches["genomic-files"][gfid] = {
+                            "acl": sorted(default_acl)
+                        }
             else:
                 patches["genomic-files"][gfid] = {"acl": sorted(default_acl)}
 

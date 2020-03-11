@@ -27,6 +27,7 @@ See `python main.py --help` for details.
 * root_phs_acl: f"{study_phs}.c999" (This gives root access to the study)
 * consent_acl: f"{study_phs}.c{code}" (Not c999 which is a reserved admin code)
 * default_acl: [study_kfid, root_phs_acl]
+* open_acl: ["*"]
 
 ## ACL Rules
 
@@ -42,25 +43,30 @@ See `python main.py --help` for details.
   dataservice, **return or display an alert**.
 
 * Dataservice biospecimens whose samples are found in the sample status file
-  with status "Loaded" should have their consent_type dbgap_consent_code fields
-  set as indicated in the file.
+  with status "Loaded" should have their `consent_type` and
+  `dbgap_consent_code` fields set as indicated in the file.
 
 * All other dataservice biospecimens should be hidden in the dataservice and
-  their `"consent_type"` and `"dbgap_consent_code"` fields should be set to
+  their `consent_type` and `dbgap_consent_code` fields should be set to
   `null`.
 
-    * If a biospecimen is hidden in the dataservice, its descendants (genomic
-      files, read groups, etc) should also be hidden.
+* If a biospecimen is hidden in the dataservice, its descendants (genomic
+  files, read groups, etc) should also be hidden.
 
-* All genomic files in the dataservice should get `{default_acl}`.
+* All non-hidden (aka visible) genomic files in the dataservice with their
+  `controlled_access` field set to **False** or **null** should get
+  `{open_acl}`.
 
-* Each reported custom consent code should be added to each genomic file with
-  contribution from any biospecimen(s) in the study with the reported sample
-  external ID by adding the `{consent_acl}` in addition to the default **IF AND
-  ONLY IF** the genomic file and its contributing biospecimen(s) are all
-  visible in the dataservice, **with the following exception:**
+* All other genomic files in the dataservice should get `{default_acl}`.
 
-    * Until indexd supports "and" composition rules, if a genomic file has
-      multiple contributing specimens with non-identical access control codes,
-      that genomic file should get `{default_acl}`. **Return or display an
-      alert for each such case.**
+* Each reported sample consent code should be added to each
+  `controlled_access=True` genomic file that has contribution from any
+  biospecimen(s) in the study with the reported sample external ID by adding
+  the `{consent_acl}` in addition to the default **IF AND ONLY IF** the genomic
+  file and its contributing biospecimen(s) are all visible in the dataservice,
+  **with the following exception:**
+
+  * Until indexd supports "and" composition rules, if a genomic file has
+    multiple contributing specimens with non-identical access control codes,
+    that genomic file should get `{default_acl}`. **Return or display an
+    alert for each such case.**

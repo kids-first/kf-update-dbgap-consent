@@ -59,11 +59,17 @@
         }
     },
     "genomic-files": {
-        "GF_11111111": {"hashes": {}, "size": 0, "urls": []},
-        "GF_22222222": {"hashes": {}, "size": 0, "urls": []},
-        "GF_33333333": {"hashes": {}, "size": 0, "urls": []}
+        "GF_00000000": {"hashes": {}, "size": 1, "urls": [], "controlled_access": false},
+        "GF_11111111": {"hashes": {}, "size": 1, "urls": [], "controlled_access": true},
+        "GF_22222222": {"hashes": {}, "size": 1, "urls": [], "controlled_access": true},
+        "GF_33333333": {"hashes": {}, "size": 1, "urls": [], "controlled_access": true},
+        "GF_44444444": {"hashes": {}, "size": 1, "urls": [], "controlled_access": false}
     },
     "biospecimen-genomic-files": {
+        "BG_00000000": {
+            "biospecimen_id": "BS_11111111",
+            "genomic_file_id": "GF_00000000"
+        },
         "BG_11111111": {
             "biospecimen_id": "BS_11111111",
             "genomic_file_id": "GF_11111111"
@@ -75,6 +81,10 @@
         "BG_33333333": {
             "biospecimen_id": "BS_33333333",
             "genomic_file_id": "GF_33333333"
+        },
+        "BG_44444444": {
+            "biospecimen_id": "BS_33333333",
+            "genomic_file_id": "GF_44444444"
         }
     },
     "sequencing-experiments": {
@@ -92,6 +102,10 @@
         }
     },
     "sequencing-experiment-genomic-files": {
+        "SG_00000000": {
+            "sequencing_experiment_id": "SE_11111111",
+            "genomic_file_id": "GF_00000000"
+        },
         "SG_11111111": {
             "sequencing_experiment_id": "SE_11111111",
             "genomic_file_id": "GF_11111111"
@@ -103,6 +117,10 @@
         "SG_33333333": {
             "sequencing_experiment_id": "SE_33333333",
             "genomic_file_id": "GF_33333333"
+        },
+        "SG_44444444": {
+            "sequencing_experiment_id": "SE_33333333",
+            "genomic_file_id": "GF_44444444"
         }
     }
 }
