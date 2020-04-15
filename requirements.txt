@@ -1,2 +1,2 @@
--e git+ssh://git@github.com/kids-first/kf-utils-python.git#egg=kf_utils
--e git+ssh://git@github.com/d3b-center/d3b-utils-python.git#egg=d3b_utils
+-e git+https://git@github.com/kids-first/kf-utils-python.git#egg=kf_utils
+-e git+https://git@github.com/d3b-center/d3b-utils-python.git#egg=d3b_utils
