@@ -36,12 +36,21 @@ if __name__ == "__main__":
         default=False,
         help="Collect patches but don't apply them",
     )
+    parser.add_argument(
+        "--match_aliquot",
+        action="store_true",
+        default=False,
+        help=(
+            "Match dbGaP `SAMPLE_ID` to `external_aliquot_id` in the dataservice.\n"  # noqa E501
+            " - Defaults to match on `external_sample_id`"
+        ),
+    )
     args = parser.parse_args()
     print(f"Args: {args.__dict__}")
 
     patches, alerts = ConsentProcessor(
         args.server, args.db_url
-    ).get_patches_for_study(args.study)
+    ).get_patches_for_study(args.study, args.match_aliquot)
 
     all_patches = {}
     for endpoint_patches in patches.values():
