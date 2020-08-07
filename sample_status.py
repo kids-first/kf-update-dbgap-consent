@@ -87,7 +87,13 @@ class ConsentProcessor:
                 f"data_access_authority for study {study_id} is not 'dbGaP'"
             )
 
-    def get_patches_for_study(self, study_id, dbgap_status="released"):
+    def get_patches_for_study(
+        self, study_id, dbgap_status="released", match_aliquot=False
+    ):
+        if match_aliquot:
+            match_entity = "external_aliquot_id"
+        else:
+            match_entity = "external_sample_id"
         print("Looking up dbGaP accession ID")
         study_phs, study_version = self.get_accession(study_id)
         print(f"Found accession ID: {study_phs}")
@@ -169,7 +175,7 @@ class ConsentProcessor:
         the dataservice, return or display an alert.
         """
         specimen_extids = set(
-            bs["external_sample_id"] for bs in storage["biospecimens"].values()
+            bs[match_entity] for bs in storage["biospecimens"].values()
         )
         for extid, s in dbgap_samples.items():
             if (s["@dbgap_status"] == "Loaded") and (
@@ -189,7 +195,7 @@ class ConsentProcessor:
         "consent_type" and "dbgap_consent_code" fields should be set to null.
         """
         for kfid, bs in storage["biospecimens"].items():
-            sample = dbgap_samples.get(bs["external_sample_id"], {})
+            sample = dbgap_samples.get(bs[match_entity], {})
             if sample.get("@dbgap_status") == "Loaded":
                 patches["biospecimens"][kfid] = {
                     "consent_type": sample["@consent_short_name"],
@@ -275,8 +281,8 @@ class ConsentProcessor:
                         )
                     else:
                         """
-                        ...with the following exception: 
-                        
+                        ...with the following exception:
+
                         Until indexd supports "and" composition rules, if a genomic
                         file has multiple contributing specimens with non-identical
                         access control codes, that genomic file should get
