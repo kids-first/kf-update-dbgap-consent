@@ -50,7 +50,7 @@ if __name__ == "__main__":
 
     patches, alerts = ConsentProcessor(
         args.server, args.db_url
-    ).get_patches_for_study(args.study, args.match_aliquot)
+    ).get_patches_for_study(args.study, match_aliquot=args.match_aliquot)
 
     all_patches = {}
     for endpoint_patches in patches.values():
