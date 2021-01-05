@@ -5,7 +5,7 @@ import pytest
 import requests_mock
 from d3b_utils.requests_retry import Session
 
-import sample_status
+from kf_update_dbgap_consent.sample_status import ConsentProcessor
 
 host = "http://localhost:5000"
 
@@ -64,15 +64,13 @@ def test_sample_status(requests_mock):
     # No study should raise a study not found exception
     clear_study(study_id)
     with pytest.raises(Exception) as e:
-        sample_status.ConsentProcessor(host).get_patches_for_study(study_id)
+        ConsentProcessor(host).get_patches_for_study(study_id)
     assert f"{study_id} not found" in str(e.value)
 
     populate_dataservice(data)
 
     # Everything exists: patches should come back as expected
-    patches, alerts = sample_status.ConsentProcessor(
-        host
-    ).get_patches_for_study(study_id)
+    patches, alerts = ConsentProcessor(host).get_patches_for_study(study_id)
     assert not alerts
     compare(patches, expected_patches)
 
@@ -80,9 +78,7 @@ def test_sample_status(requests_mock):
     Session().patch(
         f"{host}/genomic-files/GF_22222222", json={"controlled_access": None}
     )
-    patches, alerts = sample_status.ConsentProcessor(
-        host
-    ).get_patches_for_study(study_id)
+    patches, alerts = ConsentProcessor(host).get_patches_for_study(study_id)
     assert alerts == [
         "ALERT: GF GF_22222222 is visible but has controlled_access set to null"
         " instead of True/False."
@@ -93,16 +89,12 @@ def test_sample_status(requests_mock):
     Session().patch(
         f"{host}/genomic-files/GF_22222222", json={"visible": False}
     )
-    patches, alerts = sample_status.ConsentProcessor(
-        host
-    ).get_patches_for_study(study_id)
+    patches, alerts = ConsentProcessor(host).get_patches_for_study(study_id)
     assert "GF_22222222" not in patches["genomic-files"]
 
     # A biospecimen is missing: patches should be absent relevant parts + alert
     Session().delete(f"{host}/biospecimens/BS_22222222")
-    patches, alerts = sample_status.ConsentProcessor(
-        host
-    ).get_patches_for_study(study_id)
+    patches, alerts = ConsentProcessor(host).get_patches_for_study(study_id)
     new_expected_patches = {
         endpoint: {
             k: v for k, v in entities.items() if not k.endswith("22222222")
@@ -127,9 +119,7 @@ def test_sample_status(requests_mock):
             "dbgap_consent_code": "phs999999.c1",
         },
     )
-    patches, alerts = sample_status.ConsentProcessor(
-        host
-    ).get_patches_for_study(study_id)
+    patches, alerts = ConsentProcessor(host).get_patches_for_study(study_id)
     new_expected_patches["biospecimens"]["BS_44444444"] = {
         "visible": False,
         "consent_type": None,

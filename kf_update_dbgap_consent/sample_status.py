@@ -129,7 +129,11 @@ class ConsentProcessor:
         if self.db_url:
             print("Querying the database...")
             storage = find_descendants_by_kfids(
-                self.db_url, "studies", [study_id], False, kfids_only=False,
+                self.db_url,
+                "studies",
+                [study_id],
+                False,
+                kfids_only=False,
             )
             for e in storage["biospecimen-genomic-files"].values():
                 bsid = e["biospecimen_id"]
