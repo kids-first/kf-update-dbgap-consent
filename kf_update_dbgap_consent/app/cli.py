@@ -4,11 +4,11 @@ from argparse import RawTextHelpFormatter
 from pprint import pprint
 
 from kf_utils.dataservice.patch import send_patches
-from sample_status import ConsentProcessor
+from kf_update_dbgap_consent.sample_status import ConsentProcessor
 
 SERVER_DEFAULT = "http://localhost:5000"
 
-if __name__ == "__main__":
+def cli():
     parser = argparse.ArgumentParser(
         formatter_class=RawTextHelpFormatter, allow_abbrev=False
     )
@@ -60,3 +60,7 @@ if __name__ == "__main__":
         pprint(all_patches)
     else:
         send_patches(args.server, all_patches)
+
+
+if __name__ == "__main__":
+    main()
