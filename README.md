@@ -14,7 +14,7 @@ Gets sample consent codes for a study from dbGaP (`https://www.ncbi.nlm.nih.gov/
 
 ## Running the Tool
 
-`python main.py SD_12345678 --server https://kf-api-dataservice.kidsfirstdrc.org --db_url postgresql://{USER_NAME}:{PASSWORD}@{PG_HOST}:{PG_PORT}/{PG_DBNAME} --dry_run`
+`dbgapconsent SD_12345678 --server https://kf-api-dataservice.kidsfirstdrc.org --db_url postgresql://{USER_NAME}:{PASSWORD}@{PG_HOST}:{PG_PORT}/{PG_DBNAME} --dry_run`
 
 See `python main.py --help` for details.
 
@@ -22,7 +22,7 @@ See `python main.py --help` for details.
 
 The `--match_aliquot` flag will match dbGaP `submitted_sample_id` to `external_aliquot_id` in the dataservice. By default, (without the flag), matched on `external_sample_id`.
 
-`python main.py SD_12345678 --server https://kf-api-dataservice.kidsfirstdrc.org --db_url postgresql://{USER_NAME}:{PASSWORD}@{PG_HOST}:{PG_PORT}/{PG_DBNAME} --dry_run --match_aliquot`
+`dbgapconsent SD_12345678 --server https://kf-api-dataservice.kidsfirstdrc.org --db_url postgresql://{USER_NAME}:{PASSWORD}@{PG_HOST}:{PG_PORT}/{PG_DBNAME} --dry_run --match_aliquot`
 
 ---
 
