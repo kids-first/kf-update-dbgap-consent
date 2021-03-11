@@ -217,18 +217,19 @@ class ConsentProcessor:
         Rule: If a biospecimen is hidden in the dataservice, its descendants
         should also be hidden.
         """
-        descendants_of_hidden_specimens = find_descendants_by_kfids(
-            self.db_url or self.api_url,
-            "biospecimens",
-            list(hidden_specimens.keys()),
-            ignore_gfs_with_hidden_external_contribs=False,
-            kfids_only=False,
-        )
-        descendants_of_hidden_specimens["biospecimens"] = hidden_specimens
-        for endpoint, entities in descendants_of_hidden_specimens.items():
-            for k, e in entities.items():
-                storage[endpoint][k] = e
-                patches[endpoint][k]["visible"] = False
+        if hidden_specimens:
+            descendants_of_hidden_specimens = find_descendants_by_kfids(
+                self.db_url or self.api_url,
+                "biospecimens",
+                list(hidden_specimens.keys()),
+                ignore_gfs_with_hidden_external_contribs=False,
+                kfids_only=False,
+            )
+            descendants_of_hidden_specimens["biospecimens"] = hidden_specimens
+            for endpoint, entities in descendants_of_hidden_specimens.items():
+                for k, e in entities.items():
+                    storage[endpoint][k] = e
+                    patches[endpoint][k]["visible"] = False
 
         print()
 
