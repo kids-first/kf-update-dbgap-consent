@@ -2,7 +2,6 @@ import json
 from urllib.parse import parse_qs
 
 import pytest
-import requests_mock
 from d3b_utils.requests_retry import Session
 
 from kf_update_dbgap_consent.sample_status import ConsentProcessor
@@ -23,10 +22,10 @@ def mock_dbgap(mocker):
 
 
 def load_data():
-    with open(f"tests/data/phs999999_dataservice.json") as f:
+    with open("tests/data/phs999999_dataservice.json") as f:
         data = json.load(f)
     study_id = list(data["studies"].keys())[0]
-    with open(f"tests/data/phs999999_patches.json") as f:
+    with open("tests/data/phs999999_patches.json") as f:
         expected_patches = json.load(f)
     return study_id, data, expected_patches
 

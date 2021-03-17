@@ -62,7 +62,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from d3b_utils.requests_retry import Session
 
 from kf_utils.dataservice.descendants import find_descendants_by_kfids
-from kf_utils.dataservice.scrape import yield_entities, yield_kfids
+from kf_utils.dataservice.scrape import yield_entities
 from kf_utils.dbgap.release import get_latest_sample_status
 
 
@@ -243,7 +243,7 @@ class ConsentProcessor:
                 for k in bsids
             )
             if (gfid not in hidden_genomic_files) and all_biospecimens_visible:
-                if storage["genomic-files"][gfid]["controlled_access"] == False:
+                if storage["genomic-files"][gfid]["controlled_access"] is False:
                     """
                     Rule: All non-hidden (aka visible) genomic files in the dataservice
                     with their `controlled_access` field set to **False** should get
@@ -253,7 +253,7 @@ class ConsentProcessor:
                         {"acl": sorted(open_acl)}
                     )
                 elif (
-                    storage["genomic-files"][gfid]["controlled_access"] == None
+                    storage["genomic-files"][gfid]["controlled_access"] is None
                 ):
                     """
                     Rule: All non-hidden (aka visible) genomic files in the dataservice
@@ -303,7 +303,7 @@ class ConsentProcessor:
                             {"acl": sorted(default_acl)}
                         )
             else:
-                if storage["genomic-files"][gfid]["controlled_access"] == None:
+                if storage["genomic-files"][gfid]["controlled_access"] is None:
                     """
                     Rule: All hidden genomic files in the dataservice with their
                     controlled_access field set to **null** should get `{empty_acl}`.
