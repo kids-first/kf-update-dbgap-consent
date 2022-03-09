@@ -60,9 +60,11 @@ from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from d3b_utils.requests_retry import Session
-
 from kf_utils.dataservice.descendants import find_descendants_by_kfids
-from kf_utils.dataservice.scrape import yield_entities
+from kf_utils.dataservice.scrape import (
+    yield_entities,
+    yield_entities_from_kfids,
+)
 from kf_utils.dbgap.release import get_latest_sample_status
 
 
@@ -88,7 +90,11 @@ class ConsentProcessor:
             )
 
     def get_patches_for_study(
-        self, study_id, dbgap_status="released", match_aliquot=False
+        self,
+        study_id,
+        dbgap_status="released",
+        match_aliquot=False,
+        coerce_visible=False,
     ):
         if match_aliquot:
             match_entity = "external_aliquot_id"
@@ -213,6 +219,48 @@ class ConsentProcessor:
                 }
                 hidden_specimens[kfid] = bs
 
+        """
+        Handle if samples loaded into dbgap should be made visible
+        """
+        if coerce_visible:
+            unhidden_specimens = {}
+            for kfid, bs in storage["biospecimens"].items():
+                sample = dbgap_samples.get(bs[match_entity], {})
+                if sample.get("@dbgap_status") == "Loaded":
+                    # remove the sample from list of hidden specimens if the
+                    # specimen is loaded in dbgap.
+                    hidden_specimens.pop(kfid, None)
+                    unhidden_specimens[kfid] = bs
+            descendants_of_unhidden_specimens = find_descendants_by_kfids(
+                self.db_url or self.api_url,
+                "biospecimens",
+                list(unhidden_specimens.keys()),
+                ignore_gfs_with_hidden_external_contribs=False,
+                kfids_only=False,
+            )
+            descendants_of_unhidden_specimens["participants"] = {
+                e["kf_id"]: e
+                for e in yield_entities_from_kfids(
+                    self.api_url,
+                    [
+                        bs["participant_id"]
+                        for bs in unhidden_specimens.values()
+                    ],
+                )
+            }
+            descendants_of_unhidden_specimens[
+                "biospecimens"
+            ] = unhidden_specimens
+            for (
+                endpoint,
+                entities,
+            ) in descendants_of_unhidden_specimens.items():
+                for k, e in entities.items():
+                    storage[endpoint][k] = e
+                    patches[endpoint][k]["visible"] = True
+                    if endpoint == "genomic-files":
+                        # remove the genomic file from list of hidden files
+                        hidden_genomic_files.discard(k)
         """
         Rule: If a biospecimen is hidden in the dataservice, its descendants
         should also be hidden.

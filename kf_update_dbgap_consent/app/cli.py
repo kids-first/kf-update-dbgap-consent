@@ -3,8 +3,8 @@ import argparse
 from argparse import RawTextHelpFormatter
 from pprint import pprint
 
-from kf_utils.dataservice.patch import send_patches
 from kf_update_dbgap_consent.sample_status import ConsentProcessor
+from kf_utils.dataservice.patch import send_patches
 
 SERVER_DEFAULT = "http://localhost:5000"
 
@@ -46,12 +46,25 @@ def cli():
             " - Defaults to match on `external_sample_id`"
         ),
     )
+    parser.add_argument(
+        "--coerce_visible",
+        action="store_true",
+        default=False,
+        help=(
+            "If a specimen is loaded into dbgap, set the specimens, its "
+            "descendants, and the associated participant to visible."
+        ),
+    )
     args = parser.parse_args()
     print(f"Args: {args.__dict__}")
 
     patches, alerts = ConsentProcessor(
         args.server, args.db_url
-    ).get_patches_for_study(args.study, match_aliquot=args.match_aliquot)
+    ).get_patches_for_study(
+        args.study,
+        match_aliquot=args.match_aliquot,
+        coerce_visible=args.coerce_visible,
+    )
 
     all_patches = {}
     for endpoint_patches in patches.values():
