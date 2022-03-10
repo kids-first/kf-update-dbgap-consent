@@ -61,10 +61,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from d3b_utils.requests_retry import Session
 from kf_utils.dataservice.descendants import find_descendants_by_kfids
-from kf_utils.dataservice.scrape import (
-    yield_entities,
-    yield_entities_from_kfids,
-)
+from kf_utils.dataservice.scrape import yield_entities, yield_entities_from_kfids
 from kf_utils.dbgap.release import get_latest_sample_status
 
 
@@ -235,7 +232,7 @@ class ConsentProcessor:
                 self.db_url or self.api_url,
                 "participants",
                 [bs["participant_id"] for bs in unhidden_specimens.values()],
-                ignore_gfs_with_hidden_external_contribs=False,
+                ignore_gfs_with_hidden_external_contribs=True,
                 kfids_only=False,
             )
             descendants_of_unhidden_specimens["participants"] = {
@@ -249,16 +246,26 @@ class ConsentProcessor:
                 )
             }
             breakpoint()
+            keep_hidden = []
             for (
                 endpoint,
                 entities,
             ) in descendants_of_unhidden_specimens.items():
                 for k, e in entities.items():
+                    if endpoint == 'biospecimens'
                     storage[endpoint][k] = e
                     patches[endpoint][k]["visible"] = True
                     if endpoint == "genomic-files":
                         # remove the genomic file from list of hidden files
                         hidden_genomic_files.discard(k)
+
+        for k in descendants_of_unhidden_specimens['genomic-files'].keys():
+            if k in [bg['genomic_file_id'] for bg in descendants_of_unhidden_specimens['biospecimen-genomic-files'].values() ]:
+                print(k)
+
+        for bg in descendants_of_unhidden_specimens['biospecimen-genomic-files'].values():
+            if bg['biospecimen_id'] not in unhidden_specimens.keys():
+                print(bg['biospecimen_id'])
         """
         Rule: If a biospecimen is hidden in the dataservice, its descendants
         should also be hidden.
