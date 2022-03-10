@@ -233,8 +233,8 @@ class ConsentProcessor:
                     unhidden_specimens[kfid] = bs
             descendants_of_unhidden_specimens = find_descendants_by_kfids(
                 self.db_url or self.api_url,
-                "biospecimens",
-                list(unhidden_specimens.keys()),
+                "participants",
+                [bs["participant_id"] for bs in unhidden_specimens.values()],
                 ignore_gfs_with_hidden_external_contribs=False,
                 kfids_only=False,
             )
@@ -248,9 +248,7 @@ class ConsentProcessor:
                     ],
                 )
             }
-            descendants_of_unhidden_specimens[
-                "biospecimens"
-            ] = unhidden_specimens
+            breakpoint()
             for (
                 endpoint,
                 entities,
