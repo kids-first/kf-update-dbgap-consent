@@ -51,7 +51,7 @@ def cli():
         action="store_true",
         default=False,
         help=(
-            "If a specimen is loaded into dbgap, set the specimens, its "
+            "If a specimen is loaded into dbgap, set the specimen, its "
             "descendants, and the associated participant to visible."
         ),
     )
