@@ -52,7 +52,8 @@ def cli():
         default=False,
         help=(
             "If a specimen is loaded into dbgap, set the specimen, its "
-            "descendants, and the associated participant to visible."
+            "descendants, the associated participant, and the associated "
+            "participant's non-specimen descendants to visible."
         ),
     )
     args = parser.parse_args()
