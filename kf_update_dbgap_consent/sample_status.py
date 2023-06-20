@@ -250,7 +250,7 @@ class ConsentProcessor:
                     `{open_acl}`.
                     """
                     patches["genomic-files"][gfid].update(
-                        {"acl": sorted(open_acl)}
+                        {"authz": sorted(open_acl)}
                     )
                 elif (
                     storage["genomic-files"][gfid]["controlled_access"] is None
@@ -282,7 +282,7 @@ class ConsentProcessor:
                         the dataservice...
                         """
                         patches["genomic-files"][gfid].update(
-                            {"acl": sorted(default_acl | biospecimen_codes)}
+                            {"authz": sorted(default_acl | biospecimen_codes)}
                         )
                     else:
                         """
@@ -300,7 +300,7 @@ class ConsentProcessor:
                         )
                         print(alerts[-1])
                         patches["genomic-files"][gfid].update(
-                            {"acl": sorted(default_acl)}
+                            {"authz": sorted(default_acl)}
                         )
             else:
                 if storage["genomic-files"][gfid]["controlled_access"] is None:
@@ -309,7 +309,7 @@ class ConsentProcessor:
                     controlled_access field set to **null** should get `{empty_acl}`.
                     """
                     patches["genomic-files"][gfid].update(
-                        {"acl": sorted(empty_acl)}
+                        {"authz": sorted(empty_acl)}
                     )
                 else:
                     """
@@ -317,7 +317,7 @@ class ConsentProcessor:
                     {default_acl}.
                     """
                     patches["genomic-files"][gfid].update(
-                        {"acl": sorted(default_acl)}
+                        {"authz": sorted(default_acl)}
                     )
 
         # remove known unneeded patches
