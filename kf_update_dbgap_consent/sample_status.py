@@ -6,7 +6,7 @@
 * root_phs_acl: f"{study_phs}.c999" (This gives root access to the study)
 * consent_acl: f"{study_phs}.c{code}" (Not c999 which is a reserved admin code)
 * default_acl: [study_kfid, root_phs_acl]
-* open_acl: ["*"]
+* open_acl: ["/open"]
 * empty_acl: []
 
 ## ACL Rules
@@ -98,7 +98,7 @@ class ConsentProcessor:
         study_phs, study_version = self.get_accession(study_id)
         print(f"Found accession ID: {study_phs}")
         default_acl = {study_id, f"{study_phs}.c999"}
-        open_acl = {"*"}
+        open_acl = {"/open"}
         empty_acl = set()
         alerts = []
         patches = defaultdict(lambda: defaultdict(dict))
