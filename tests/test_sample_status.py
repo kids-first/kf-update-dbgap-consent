@@ -84,12 +84,11 @@ def test_sample_status(requests_mock):
     ]
 
     # A hidden GF with controlled_access set to null gets empty acl
-    # (harder to test because local dataservice doesn't store acl)
     Session().patch(
         f"{host}/genomic-files/GF_22222222", json={"visible": False}
     )
     patches, alerts = ConsentProcessor(host).get_patches_for_study(study_id)
-    assert "GF_22222222" not in patches["genomic-files"]
+    assert patches["genomic-files"]["GF_22222222"]["authz"] == []
 
     # A biospecimen is missing: patches should be absent relevant parts + alert
     Session().delete(f"{host}/biospecimens/BS_22222222")

@@ -27,35 +27,25 @@
     },
     "genomic-files": {
         "GF_00000000": {
-            "acl": [
-                "SD_00000000",
-                "phs999999.c999"
-            ],
+            "authz": [],
             "visible": false
         },
         "GF_11111111": {
-            "acl": [
-                "SD_00000000",
-                "phs999999.c999"
-            ],
+            "authz": [],
             "visible": false
         },
         "GF_22222222": {
-            "acl": [
-                "SD_00000000",
-                "phs999999.c1",
-                "phs999999.c999"
+            "authz": [
+                "phs999999.c1"
             ]
         },
         "GF_33333333": {
-            "acl": [
-                "SD_00000000",
-                "phs999999.c2",
-                "phs999999.c999"
+            "authz": [
+                "phs999999.c2"
             ]
         },
         "GF_44444444": {
-            "acl": ["*"]
+            "authz": ["/open"]
         }
     },
     "sequencing-experiment-genomic-files": {
