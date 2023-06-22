@@ -34,7 +34,3 @@ services:
       PG_PASS: "${DATASERVICE_DB_PASSWORD}"
     depends_on:
       - dataservice_pg
-networks:
-  default:
-    external:
-      name: kf-data-stack
