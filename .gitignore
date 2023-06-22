@@ -160,3 +160,6 @@ kf_ingest_packages/packages/**/output/*
 # Validation Report Site
 ## Build dir
 web/site
+
+# CI Artifacts
+kf-api-dataservice
