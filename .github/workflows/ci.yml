@@ -1,0 +1,61 @@
+
+name: ✅ CI 
+
+on:
+  pull_request:
+    types: [opened, reopened, edited, synchronize, closed] 
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 10
+    steps:
+      - name: 👩‍💻 Checkout code
+        uses: actions/checkout@v3
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.8'
+
+      - name: 📦 Install deps
+        run: |
+          pip install black 
+
+      - name: 🚨 Lint code 
+        run: |
+          black --check --line-length 80 kf_update_dbgap_consent tests
+
+  test:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 10
+    steps:
+      - name: 👩‍💻 Checkout code
+        uses: actions/checkout@v3
+
+      - name: 🐳 Start Dataservice docker-compose
+        run: |
+          ./bin/setup_dataservice.sh
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.8'
+
+      - name: 📦 Install deps
+        run: |
+          pip install --upgrade virtualenv
+          virtualenv -p python3 venv
+          source venv/bin/activate
+          pip install -r dev-requirements.txt
+          pip install -e .
+
+      - name: ✅ Test
+        run: |
+          source venv/bin/activate
+          pytest tests
+
