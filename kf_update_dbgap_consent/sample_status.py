@@ -2,8 +2,8 @@
 ## ACL Definitions
 
 * study_phs: (e.g. "phs001138")
-* consent_acl: f"{study_phs}.c{consent_code}" (consent_code for the specimen)
-* default_acl: [{consent_acl} from visible biospecimens which contribute to the genomic file]
+* consent_acl: f"/programs/{study_phs}.c{consent_code}" (consent_code for the specimen)
+* default_acl: unique([{consent_acl} from visible biospecimens which contribute to the genomic file])
 * open_acl: ["/open"]
 
 ## ACL Rules
@@ -39,15 +39,17 @@ field set to **False** should get `{open_acl}`.
 * All visible genomic files in the dataservice with their `controlled_access`
 field set to **True** should get the `{default_acl}`.
 
-* The `default_acl` is a list of the `consent_acl` from the visible specimens
-in the study which contribute to the genomic_file.
+* The `default_acl` is the unique set of the `consent_acl` from the visible
+specimens in the study which contribute to the genomic_file.
 
 * The `consent_acl` is composed of the study phs ID and the
-reported sample consent code of the sample. See ACL Definitions for
-details
+reported sample consent code of the sample, prepended with the dbgap
+prefix "/programs" (e.g. "/programs/phs001138.c1")
 
-* All hidden genomic files in the dataservice should get `{empty_acl}`
+* All other genomic files in the dataservice should get `{empty_acl}`
 indicating no access.
+
+
 """
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -266,19 +268,27 @@ class ConsentProcessor:
                     their `controlled_access` field set to **True** should get
                     the `{default_acl}`.
 
-                    * The `default_acl` is a list of the `consent_acl`
+                    * The `default_acl` is the unique set of the `consent_acl`
                     from the visible specimens in the study which contribute to
                     the genomic_file.
 
                     * The `consent_acl` is composed of the study phs ID and the
-                    reported consent code of the sample (e.g. phs001138.c1)
+                    reported consent code of the sample, prepended with the
+                    dbgap prefix "/programs" (e.g. "/programs/phs001138.c1")
                     """
                     biospecimen_codes = set(
                         patches["biospecimens"][k].get("dbgap_consent_code")
                         for k in bsids
                     )
                     patches["genomic-files"][gfid].update(
-                        {"authz": sorted(biospecimen_codes)}
+                        {
+                            "authz": sorted(
+                                [
+                                    f"/programs/{code}"
+                                    for code in biospecimen_codes
+                                ]
+                            )
+                        }
                     )
             # GenomicFile visible = False OR one of contributing Biospecimen
             # visible=False

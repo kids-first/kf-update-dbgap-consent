@@ -29,8 +29,8 @@ The `--match_aliquot` flag will match dbGaP `submitted_sample_id` to `external_a
 ## ACL Definitions
 
 * study_phs: (e.g. "phs001138")
-* consent_acl: f"{study_phs}.c{consent_code}" (consent_code for the specimen) 
-* default_acl: [{consent_acl} from visible biospecimens which contribute to the genomic file]
+* consent_acl: f"/programs/{study_phs}.c{consent_code}" (consent_code for the specimen) 
+* default_acl: set([{consent_acl} from visible biospecimens which contribute to the genomic file])
 * open_acl: ["/open"]
 
 ## ACL Rules
@@ -66,12 +66,12 @@ field set to **False** should get `{open_acl}`.
 * All visible genomic files in the dataservice with their `controlled_access`
 field set to **True** should get the `{default_acl}`.
 
-* The `default_acl` is a list of the `consent_acl` from the visible specimens
-in the study which contribute to the genomic_file.
+* The `default_acl` is the unique set of the `consent_acl` from the visible
+specimens in the study which contribute to the genomic_file.
 
 * The `consent_acl` is composed of the study phs ID and the
-reported sample consent code of the sample. See ACL Definitions for
-details
+reported sample consent code of the sample, prepended with the dbgap
+prefix "/programs" (e.g. "/programs/phs001138.c1")
 
 * All other genomic files in the dataservice should get `{empty_acl}`
 indicating no access.
