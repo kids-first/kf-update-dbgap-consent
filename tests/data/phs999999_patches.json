@@ -1,20 +1,28 @@
 {
     "biospecimen-diagnoses": {
         "BD_11111111": {
-            "visible": false
+            "visible": false,
+             "visibility_reason": "Consent Hold",
+             "visibility_comment": "Sample is not registered in dbGaP"
         }
     },
     "biospecimen-genomic-files": {
         "BG_00000000": {
-            "visible": false
+            "visible": false,
+             "visibility_reason": "Consent Hold",
+             "visibility_comment": "Sample is not registered in dbGaP"
         },
         "BG_11111111": {
-            "visible": false
+            "visible": false,
+             "visibility_reason": "Consent Hold",
+             "visibility_comment": "Sample is not registered in dbGaP"
         }
     },
     "biospecimens": {
         "BS_11111111": {
-            "visible": false
+            "visible": false,
+             "visibility_reason": "Consent Hold",
+             "visibility_comment": "Sample is not registered in dbGaP"
         },
         "BS_22222222": {
             "consent_type": "LOL",
@@ -28,11 +36,15 @@
     "genomic-files": {
         "GF_00000000": {
             "authz": [],
-            "visible": false
+            "visible": false,
+             "visibility_reason": "Consent Hold",
+             "visibility_comment": "Sample is not registered in dbGaP"
         },
         "GF_11111111": {
             "authz": [],
-            "visible": false
+            "visible": false,
+            "visibility_reason": "Consent Hold",
+            "visibility_comment": "Sample is not registered in dbGaP"
         },
         "GF_22222222": {
             "authz": [
@@ -50,15 +62,21 @@
     },
     "sequencing-experiment-genomic-files": {
         "SG_00000000": {
-            "visible": false
+            "visible": false,
+            "visibility_reason": "Consent Hold",
+            "visibility_comment": "Sample is not registered in dbGaP"
         },
         "SG_11111111": {
-            "visible": false
+            "visible": false,
+            "visibility_reason": "Consent Hold",
+            "visibility_comment": "Sample is not registered in dbGaP"
         }
     },
     "sequencing-experiments": {
         "SE_11111111": {
-            "visible": false
+            "visible": false,
+            "visibility_reason": "Consent Hold",
+            "visibility_comment": "Sample is not registered in dbGaP"
         }
     },
     "studies": {

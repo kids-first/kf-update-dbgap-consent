@@ -120,6 +120,8 @@ def test_sample_status(requests_mock):
     patches, alerts = ConsentProcessor(host).get_patches_for_study(study_id)
     new_expected_patches["biospecimens"]["BS_44444444"] = {
         "visible": False,
+        "visibility_reason": "Consent Hold",
+        "visibility_comment": "Sample is not registered in dbGaP",
         "consent_type": None,
         "dbgap_consent_code": None,
     }

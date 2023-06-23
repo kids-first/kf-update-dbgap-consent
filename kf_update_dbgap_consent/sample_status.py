@@ -205,6 +205,8 @@ class ConsentProcessor:
                     "consent_type": None,
                     "dbgap_consent_code": None,
                     "visible": False,
+                    "visibility_reason": "Consent Hold",
+                    "visibility_comment": "Sample is not registered in dbGaP",
                 }
                 hidden_specimens[kfid] = bs
 
@@ -225,6 +227,10 @@ class ConsentProcessor:
                 for k, e in entities.items():
                     storage[endpoint][k] = e
                     patches[endpoint][k]["visible"] = False
+                    patches[endpoint][k]["visibility_reason"] = "Consent Hold"
+                    patches[endpoint][k][
+                        "visibility_comment"
+                    ] = "Sample is not registered in dbGaP"
                     if endpoint == "genomic-files":
                         hidden_genomic_files.add(k)
 
