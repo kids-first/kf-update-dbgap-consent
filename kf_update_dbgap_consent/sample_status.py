@@ -37,7 +37,9 @@
 field set to **False** should get `{open_acl}`.
 
 * All visible genomic files in the dataservice with their `controlled_access`
-field set to **True** should get the `{default_acl}`.
+field set to **True** should get the `{default_acl}`. If the genomic file
+previously had an ACL containing the study KF ID, this will be replaced with
+the `{default_acl}` containing the PHS ID.
 
 * The `default_acl` is the unique set of the `consent_acl` from the visible
 specimens in the study which contribute to the genomic_file.
