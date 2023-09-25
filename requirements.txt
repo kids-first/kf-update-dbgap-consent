@@ -1,2 +1,2 @@
-kf_utils @ git+https://github.com/kids-first/kf-utils-python.git
+kf_utils @ git+https://github.com/kids-first/kf-utils-python.git@no-retry-session
 d3b_utils @ git+https://github.com/d3b-center/d3b-utils-python.git
