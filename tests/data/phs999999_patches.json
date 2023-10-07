@@ -36,24 +36,29 @@
   "genomic-files": {
     "GF_00000000": {
       "authz": [],
+      "acl": [],
       "visible": false,
       "visibility_reason": "Consent Hold",
       "visibility_comment": "Sample is not registered in dbGaP"
     },
     "GF_11111111": {
       "authz": [],
+      "acl": [],
       "visible": false,
       "visibility_reason": "Consent Hold",
       "visibility_comment": "Sample is not registered in dbGaP"
     },
     "GF_22222222": {
-      "authz": ["/programs/phs999999.c1"]
+      "authz": ["/programs/phs999999.c1"],
+      "acl": ["phs999999.c1"]
     },
     "GF_33333333": {
-      "authz": ["/programs/phs999999.c2"]
+      "authz": ["/programs/phs999999.c2"],
+      "acl": ["phs999999.c2"]
     },
     "GF_44444444": {
-      "authz": ["/open"]
+      "authz": ["/open"],
+      "acl": ["*"]
     }
   },
   "sequencing-experiment-genomic-files": {

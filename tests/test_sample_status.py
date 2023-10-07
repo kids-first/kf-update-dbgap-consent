@@ -4,7 +4,10 @@ from urllib.parse import parse_qs
 import pytest
 from d3b_utils.requests_retry import Session
 
-from kf_update_dbgap_consent.sample_status import ConsentProcessor
+from kf_update_dbgap_consent.sample_status import (
+    ConsentProcessor,
+    filter_out_acl_overwrites
+)
 
 host = "http://localhost:5000"
 
@@ -126,3 +129,39 @@ def test_sample_status(requests_mock):
         "dbgap_consent_code": None,
     }
     compare(patches, new_expected_patches)
+
+
+def test_filter_out_acl_overwrites():
+    """
+    Test filter_out_acl_overwrites method
+    """
+    storage = {}
+    patches = {}
+    storage["genomic-files"] = {}
+    patches["genomic-files"] = {}
+
+    # Overwrite an ACL that has not been set
+    storage["genomic-files"]["GF_1"] = {
+        "acl": []
+    }
+    patches["genomic-files"]["GF_1"] = {
+        "acl": ["foo"],
+        "visible": True
+    }
+    patches = filter_out_acl_overwrites(storage, patches)
+    assert patches["genomic-files"]["GF_1"] == {
+        "acl": ["foo"],
+        "visible": True
+    }
+    # Overwrite an ACL that is set - should fail
+    storage["genomic-files"]["GF_1"] = {
+        "acl": ["foo"]
+    }
+    patches["genomic-files"]["GF_1"] = {
+        "acl": ["bar"],
+        "visible": True
+    }
+    patches = filter_out_acl_overwrites(storage, patches)
+    assert patches["genomic-files"]["GF_1"] == {
+        "visible": True
+    }

@@ -64,9 +64,43 @@ from kf_utils.dataservice.scrape import yield_entities
 from kf_utils.dbgap.release import get_latest_sample_status
 
 
+legacy_acl = {
+    "open_acl": ["*"],
+    "empty_acl": [],
+}
+
+
 def is_localhost(url):
     hosts = {"localhost", "127.0.0.1"}
     return any(hostname in url for hostname in hosts)
+
+
+def filter_out_acl_overwrites(storage, patches):
+    """
+    Remove `acl` patches if the GF already has a value for the acl
+    We want to preserve current `acl` values in Dataservice
+    """
+
+    def is_valid(kf_id, k, v):
+        if k != "acl":
+            return True
+
+        gf = storage["genomic-files"].get(kf_id, {})
+        if not gf:
+            return False
+
+        if gf.get("acl"):
+            return False
+        else:
+            return True
+
+    return {
+        endpoint: {
+            kfid: {k: v for k, v in patch.items() if is_valid(kfid, k, v)}
+            for kfid, patch in ep_patches.items()
+        }
+        for endpoint, ep_patches in patches.items()
+    }
 
 
 class ConsentProcessor:
@@ -277,7 +311,10 @@ class ConsentProcessor:
                     `{open_acl}`.
                     """
                     patches["genomic-files"][gfid].update(
-                        {"authz": sorted(open_acl)}
+                        {
+                            "authz": sorted(open_acl),
+                            "acl": legacy_acl["open_acl"],
+                        }
                     )
                 elif controlled_access == True:
                     """
@@ -304,7 +341,8 @@ class ConsentProcessor:
                                     f"/programs/{code}"
                                     for code in biospecimen_codes
                                 ]
-                            )
+                            ),
+                            "acl": sorted([code for code in biospecimen_codes]),
                         }
                     )
             # GenomicFile visible = False OR one of contributing Biospecimen
@@ -315,10 +353,12 @@ class ConsentProcessor:
                 `{empty_acl}` indicating no access.
                 """
                 patches["genomic-files"][gfid].update(
-                    {"authz": sorted(empty_acl)}
+                    {"authz": sorted(empty_acl), "acl": legacy_acl["empty_acl"]}
                 )
 
         # remove known unneeded patches
+        auth_fields = set(["authz", "acl"])
+
         def cmp(a, b, field_name):
             # Values get filtered out if they are equal to what
             # is already in dataservice.
@@ -328,7 +368,7 @@ class ConsentProcessor:
             # authz = [], this will get filtered out and
             # tests will fail
             # So when testing with localhost we force a patch with authz
-            if field_name == "authz" and is_localhost(self.api_url):
+            if (field_name in auth_fields) and is_localhost(self.api_url):
                 return False
 
             if isinstance(a, list) and isinstance(b, list):
@@ -357,6 +397,9 @@ class ConsentProcessor:
             for endpoint, ep_patches in patches.items()
         }
         patches = {k: v for k, v in patches.items() if v}
+
+        # Filter out any patches that would overwrite current GF `acl` values
+        patches = filter_out_acl_overwrites(storage, patches)
 
         # from pprint import pprint
         # breakpoint()
