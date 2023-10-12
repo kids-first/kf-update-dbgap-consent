@@ -1,13 +1,12 @@
 """
 ## ACL Definitions
 
-* study_kfid: (e.g. "SD_12345678")
-* study_phs: (e.g. "phs001138")
-* root_phs_acl: f"{study_phs}.c999" (This gives root access to the study)
-* consent_acl: f"{study_phs}.c{code}" (Not c999 which is a reserved admin code)
-* default_acl: [study_kfid, root_phs_acl]
-* open_acl: ["*"]
-* empty_acl: []
+* study_kf_id: e.g SD_12345678
+* default_acl: e.g. "/programs/{study_kf_id}"
+* study_phs: e.g. "phs001138"
+* consent_acl: f"/programs/{study_phs}.c{consent_code}" (consent_code for the specimen)
+* specimen_acl: unique([{consent_acl} from visible biospecimens which contribute to the genomic file])
+* open_acl: ["/open"]
 
 ## ACL Rules
 
@@ -32,30 +31,31 @@
 * If a biospecimen is hidden in the dataservice, its descendants (genomic
   files, read groups, etc) should also be hidden.
 
-* All non-hidden (aka visible) genomic files in the dataservice with their
-  `controlled_access` field set to **False** should get `{open_acl}`.
-
-* All non-hidden (aka visible) genomic files in the dataservice with their
+* All visible genomic files in the dataservice with their
   controlled_access field set to **null** should **return or display a QC
   failure alert**.
 
-* All hidden genomic files in the dataservice with their controlled_access
-  field set to **null** should get `{empty_acl}`.
+* All visible genomic files in the dataservice with their `controlled_access`
+field set to **False** should get `{open_acl}`.
 
-* All other genomic files in the dataservice should get `{default_acl}`.
+* All visible genomic files in the dataservice with their `controlled_access`
+field set to **True** should get the `{default_acl}`. If the genomic file
+previously had an ACL containing the study KF ID, this will be replaced with
+the `{specimen_acl}` containing the PHS ID.
 
-* Each reported sample consent code should be added to each
-  `controlled_access=True` genomic file that has contribution from any
-  biospecimen(s) in the study with the reported sample external ID by adding
-  the `{consent_acl}` in addition to the default **IF AND ONLY IF** the genomic
-  file and its contributing biospecimen(s) are all visible in the dataservice,
-  **with the following exception:**
+* The `specimen_acl` is the unique set of the `consent_acl` from the visible
+specimens in the study which contribute to the genomic_file.
 
-  * Until indexd supports "and" composition rules, if a genomic file has
-    multiple contributing specimens with non-identical access control codes,
-    that genomic file should get `{default_acl}`. **Return or display an alert
-    for each such case.**
+* The `consent_acl` is composed of the study phs ID and the
+reported sample consent code of the sample, prepended with the dbgap
+prefix "/programs" (e.g. "/programs/phs001138.c1")
+
+* All other genomic files in the dataservice should get `{empty_acl}`
+indicating no access.
+
+
 """
+from pprint import pprint
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -64,6 +64,45 @@ from d3b_utils.requests_retry import Session
 from kf_utils.dataservice.descendants import find_descendants_by_kfids
 from kf_utils.dataservice.scrape import yield_entities
 from kf_utils.dbgap.release import get_latest_sample_status
+
+
+legacy_acl = {
+    "open_acl": ["*"],
+    "empty_acl": [],
+}
+
+
+def is_localhost(url):
+    hosts = {"localhost", "127.0.0.1"}
+    return any(hostname in url for hostname in hosts)
+
+
+def filter_out_acl_overwrites(storage, patches):
+    """
+    Remove `acl` patches if the GF already has a value for the acl
+    We want to preserve current `acl` values in Dataservice
+    """
+
+    def is_valid(kf_id, k, v):
+        if k != "acl":
+            return True
+
+        gf = storage["genomic-files"].get(kf_id, {})
+        if not gf:
+            return False
+
+        if gf.get("acl"):
+            return False
+        else:
+            return True
+
+    return {
+        endpoint: {
+            kfid: {k: v for k, v in patch.items() if is_valid(kfid, k, v)}
+            for kfid, patch in ep_patches.items()
+        }
+        for endpoint, ep_patches in patches.items()
+    }
 
 
 class ConsentProcessor:
@@ -97,9 +136,9 @@ class ConsentProcessor:
         print("Looking up dbGaP accession ID")
         study_phs, study_version = self.get_accession(study_id)
         print(f"Found accession ID: {study_phs}")
-        default_acl = {study_id, f"{study_phs}.c999"}
-        open_acl = {"*"}
+        open_acl = {"/open"}
         empty_acl = set()
+        default_acl = [f"/programs/{study_id}"]
         alerts = []
         patches = defaultdict(lambda: defaultdict(dict))
 
@@ -173,6 +212,9 @@ class ConsentProcessor:
         hidden_genomic_files = set(
             k for k, e in storage["genomic-files"].items() if not e["visible"]
         )
+        print("**************")
+        for entity, entities in storage.items():
+            print(f"*** {entity} count: {len(entities)}")
 
         """
         Rule: For all samples in the sample status file which are not found in
@@ -210,6 +252,8 @@ class ConsentProcessor:
                     "consent_type": None,
                     "dbgap_consent_code": None,
                     "visible": False,
+                    "visibility_reason": "Consent Hold",
+                    "visibility_comment": "Sample is not registered in dbGaP",
                 }
                 hidden_specimens[kfid] = bs
 
@@ -230,6 +274,12 @@ class ConsentProcessor:
                 for k, e in entities.items():
                     storage[endpoint][k] = e
                     patches[endpoint][k]["visible"] = False
+                    patches[endpoint][k]["visibility_reason"] = "Consent Hold"
+                    patches[endpoint][k][
+                        "visibility_comment"
+                    ] = "Sample is not registered in dbGaP"
+                    if endpoint == "genomic-files":
+                        hidden_genomic_files.add(k)
 
         print()
 
@@ -238,91 +288,91 @@ class ConsentProcessor:
             all_biospecimens_visible = all(
                 [k not in hidden_specimens for k in bsids]
             )
-            biospecimen_codes = set(
-                patches["biospecimens"][k].get("dbgap_consent_code")
-                for k in bsids
-            )
-            if (gfid not in hidden_genomic_files) and all_biospecimens_visible:
-                if storage["genomic-files"][gfid]["controlled_access"] is False:
+            gf_visible = gfid not in hidden_genomic_files
+            controlled_access = storage["genomic-files"][gfid][
+                "controlled_access"
+            ]
+            # GenomicFile visible = True and
+            # all contributing Biospecimen visible = True
+            if gf_visible and all_biospecimens_visible:
+                if controlled_access == None:
                     """
-                    Rule: All non-hidden (aka visible) genomic files in the dataservice
-                    with their `controlled_access` field set to **False** should get
-                    `{open_acl}`.
-                    """
-                    patches["genomic-files"][gfid].update(
-                        {"acl": sorted(open_acl)}
-                    )
-                elif (
-                    storage["genomic-files"][gfid]["controlled_access"] is None
-                ):
-                    """
-                    Rule: All non-hidden (aka visible) genomic files in the dataservice
-                    with their controlled_access field set to **null** should **return or
-                    display a QC failure alert**.
+                    Rule: All visible genomic files in the dataservice with
+                    their controlled_access field set to **null** should
+                    **return or display a QC failure alert**.
                     """
                     alerts.append(
                         f"ALERT: GF {gfid} is visible but has controlled_access"
                         " set to null instead of True/False."
                     )
                     print(alerts[-1])
-                else:
+                elif controlled_access == False:
                     """
-                    Rule: All other genomic files in the dataservice should get
-                    {default_acl}.
+                    Rule: All visible genomic files in the dataservice with
+                    their `controlled_access` field set to **False** should get
+                    `{open_acl}`.
                     """
-                    all_biospecimens_same_code = len(biospecimen_codes) == 1
-                    if all_biospecimens_same_code:
-                        """
-                        Rule: Each reported sample consent code should be added to
-                        each `controlled_access=True` genomic file that has
-                        contribution from any biospecimen(s) in the study with the
-                        reported sample external ID by adding the `{consent_acl}`
-                        in addition to the default **IF AND ONLY IF** the genomic
-                        file and its contributing biospecimen(s) are all visible in
-                        the dataservice...
-                        """
-                        patches["genomic-files"][gfid].update(
-                            {"acl": sorted(default_acl | biospecimen_codes)}
-                        )
-                    else:
-                        """
-                        ...with the following exception:
+                    patches["genomic-files"][gfid].update(
+                        {
+                            "authz": sorted(open_acl),
+                            "acl": legacy_acl["open_acl"],
+                        }
+                    )
+                elif controlled_access == True:
+                    """
+                    Rule: All visible genomic files in the dataservice with
+                    their `controlled_access` field set to **True** should get
+                    the `{specimen_acl}`.
 
-                        Until indexd supports "and" composition rules, if a genomic
-                        file has multiple contributing specimens with non-identical
-                        access control codes, that genomic file should get
-                        {default_acl}. Return or display an alert for each such
-                        case.
-                        """
-                        alerts.append(
-                            f"ALERT: GF {gfid} has inconsistent sample access"
-                            f" codes {biospecimen_codes}"
-                        )
-                        print(alerts[-1])
-                        patches["genomic-files"][gfid].update(
-                            {"acl": sorted(default_acl)}
-                        )
+                    * The `specimen_acl` is the unique set of the `consent_acl`
+                    from the visible specimens in the study which contribute to
+                    the genomic_file.
+
+                    * The `consent_acl` is composed of the study phs ID and the
+                    reported consent code of the sample, prepended with the
+                    dbgap prefix "/programs" (e.g. "/programs/phs001138.c1")
+                    """
+                    biospecimen_codes = set(
+                        patches["biospecimens"][k].get("dbgap_consent_code")
+                        for k in bsids
+                    )
+                    patches["genomic-files"][gfid].update(
+                        {
+                            "authz": sorted(
+                                [
+                                    f"/programs/{code}"
+                                    for code in biospecimen_codes
+                                ]
+                            ),
+                            "acl": sorted([code for code in biospecimen_codes]),
+                        }
+                    )
+            # GenomicFile visible = False OR one of contributing Biospecimen
+            # visible=False
             else:
-                if storage["genomic-files"][gfid]["controlled_access"] is None:
-                    """
-                    Rule: All hidden genomic files in the dataservice with their
-                    controlled_access field set to **null** should get `{empty_acl}`.
-                    """
-                    patches["genomic-files"][gfid].update(
-                        {"acl": sorted(empty_acl)}
-                    )
-                else:
-                    """
-                    Rule: All other genomic files in the dataservice should get
-                    {default_acl}.
-                    """
-                    patches["genomic-files"][gfid].update(
-                        {"acl": sorted(default_acl)}
-                    )
+                """
+                Rule: All other genomic files in the dataservice should get
+                `{empty_acl}` indicating no access.
+                """
+                patches["genomic-files"][gfid].update(
+                    {"authz": sorted(empty_acl), "acl": legacy_acl["empty_acl"]}
+                )
 
         # remove known unneeded patches
+        auth_fields = set(["authz", "acl"])
 
-        def cmp(a, b):
+        def cmp(a, b, field_name):
+            # Values get filtered out if they are equal to what
+            # is already in dataservice.
+            # This matters for the authz field bc it will always
+            # be equal to [] since local dataservice is not connected to
+            # indexd. Therefore when we try to patch a GF with
+            # authz = [], this will get filtered out and
+            # tests will fail
+            # So when testing with localhost we force a patch with authz
+            if (field_name in auth_fields) and is_localhost(self.api_url):
+                return False
+
             if isinstance(a, list) and isinstance(b, list):
                 return sorted(a) == sorted(b)
             else:
@@ -337,7 +387,7 @@ class ConsentProcessor:
                         (endpoint in storage)
                         and (kfid in storage[endpoint])
                         and (k in storage[endpoint][kfid])
-                        and (cmp(storage[endpoint][kfid][k], v))
+                        and cmp(storage[endpoint][kfid][k], v, k)
                     )
                 }
                 for kfid, patch in ep_patches.items()
@@ -349,6 +399,11 @@ class ConsentProcessor:
             for endpoint, ep_patches in patches.items()
         }
         patches = {k: v for k, v in patches.items() if v}
+
+        # Filter out any patches that would overwrite current GF `acl` values
+        patches = filter_out_acl_overwrites(storage, patches)
+
         # from pprint import pprint
         # breakpoint()
+
         return patches, alerts

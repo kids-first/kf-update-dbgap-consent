@@ -1,79 +1,88 @@
 {
-    "biospecimen-diagnoses": {
-        "BD_11111111": {
-            "visible": false
-        }
-    },
-    "biospecimen-genomic-files": {
-        "BG_00000000": {
-            "visible": false
-        },
-        "BG_11111111": {
-            "visible": false
-        }
-    },
-    "biospecimens": {
-        "BS_11111111": {
-            "visible": false
-        },
-        "BS_22222222": {
-            "consent_type": "LOL",
-            "dbgap_consent_code": "phs999999.c1"
-        },
-        "BS_33333333": {
-            "consent_type": "HMB",
-            "dbgap_consent_code": "phs999999.c2"
-        }
-    },
-    "genomic-files": {
-        "GF_00000000": {
-            "acl": [
-                "SD_00000000",
-                "phs999999.c999"
-            ],
-            "visible": false
-        },
-        "GF_11111111": {
-            "acl": [
-                "SD_00000000",
-                "phs999999.c999"
-            ],
-            "visible": false
-        },
-        "GF_22222222": {
-            "acl": [
-                "SD_00000000",
-                "phs999999.c1",
-                "phs999999.c999"
-            ]
-        },
-        "GF_33333333": {
-            "acl": [
-                "SD_00000000",
-                "phs999999.c2",
-                "phs999999.c999"
-            ]
-        },
-        "GF_44444444": {
-            "acl": ["*"]
-        }
-    },
-    "sequencing-experiment-genomic-files": {
-        "SG_00000000": {
-            "visible": false
-        },
-        "SG_11111111": {
-            "visible": false
-        }
-    },
-    "sequencing-experiments": {
-        "SE_11111111": {
-            "visible": false
-        }
-    },
-    "studies": {
-        "SD_00000000": {
-            "version": "v1.p1"
-        }
+  "biospecimen-diagnoses": {
+    "BD_11111111": {
+      "visible": false,
+      "visibility_reason": "Consent Hold",
+      "visibility_comment": "Sample is not registered in dbGaP"
     }
+  },
+  "biospecimen-genomic-files": {
+    "BG_00000000": {
+      "visible": false,
+      "visibility_reason": "Consent Hold",
+      "visibility_comment": "Sample is not registered in dbGaP"
+    },
+    "BG_11111111": {
+      "visible": false,
+      "visibility_reason": "Consent Hold",
+      "visibility_comment": "Sample is not registered in dbGaP"
+    }
+  },
+  "biospecimens": {
+    "BS_11111111": {
+      "visible": false,
+      "visibility_reason": "Consent Hold",
+      "visibility_comment": "Sample is not registered in dbGaP"
+    },
+    "BS_22222222": {
+      "consent_type": "LOL",
+      "dbgap_consent_code": "phs999999.c1"
+    },
+    "BS_33333333": {
+      "consent_type": "HMB",
+      "dbgap_consent_code": "phs999999.c2"
+    }
+  },
+  "genomic-files": {
+    "GF_00000000": {
+      "authz": [],
+      "acl": [],
+      "visible": false,
+      "visibility_reason": "Consent Hold",
+      "visibility_comment": "Sample is not registered in dbGaP"
+    },
+    "GF_11111111": {
+      "authz": [],
+      "acl": [],
+      "visible": false,
+      "visibility_reason": "Consent Hold",
+      "visibility_comment": "Sample is not registered in dbGaP"
+    },
+    "GF_22222222": {
+      "authz": ["/programs/phs999999.c1"],
+      "acl": ["phs999999.c1"]
+    },
+    "GF_33333333": {
+      "authz": ["/programs/phs999999.c2"],
+      "acl": ["phs999999.c2"]
+    },
+    "GF_44444444": {
+      "authz": ["/open"],
+      "acl": ["*"]
+    }
+  },
+  "sequencing-experiment-genomic-files": {
+    "SG_00000000": {
+      "visible": false,
+      "visibility_reason": "Consent Hold",
+      "visibility_comment": "Sample is not registered in dbGaP"
+    },
+    "SG_11111111": {
+      "visible": false,
+      "visibility_reason": "Consent Hold",
+      "visibility_comment": "Sample is not registered in dbGaP"
+    }
+  },
+  "sequencing-experiments": {
+    "SE_11111111": {
+      "visible": false,
+      "visibility_reason": "Consent Hold",
+      "visibility_comment": "Sample is not registered in dbGaP"
+    }
+  },
+  "studies": {
+    "SD_00000000": {
+      "version": "v1.p1"
+    }
+  }
 }

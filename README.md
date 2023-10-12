@@ -25,15 +25,14 @@ The `--match_aliquot` flag will match dbGaP `submitted_sample_id` to `external_a
 `dbgapconsent SD_12345678 --server https://kf-api-dataservice.kidsfirstdrc.org --db_url postgresql://{USER_NAME}:{PASSWORD}@{PG_HOST}:{PG_PORT}/{PG_DBNAME} --dry_run --match_aliquot`
 
 ---
-
 ## ACL Definitions
 
-* study_kfid: (e.g. "SD_12345678")
-* study_phs: (e.g. "phs001138")
-* root_phs_acl: f"{study_phs}.c999" (This gives root access to the study)
-* consent_acl: f"{study_phs}.c{code}" (Not c999 which is a reserved admin code)
-* default_acl: [study_kfid, root_phs_acl]
-* open_acl: ["*"]
+* study_kf_id: e.g SD_12345678
+* default_acl: e.g. "/programs/{study_kf_id}"
+* study_phs: e.g. "phs001138"
+* consent_acl: f"/programs/{study_phs}.c{consent_code}" (consent_code for the specimen)
+* specimen_acl: unique([{consent_acl} from visible biospecimens which contribute to the genomic file])
+* open_acl: ["/open"]
 
 ## ACL Rules
 
@@ -58,26 +57,27 @@ The `--match_aliquot` flag will match dbGaP `submitted_sample_id` to `external_a
 * If a biospecimen is hidden in the dataservice, its descendants (genomic
   files, read groups, etc) should also be hidden.
 
-* All non-hidden (aka visible) genomic files in the dataservice with their
-  `controlled_access` field set to **False** should get `{open_acl}`.
-
-* All non-hidden (aka visible) genomic files in the dataservice with their
+* All visible genomic files in the dataservice with their
   controlled_access field set to **null** should **return or display a QC
   failure alert**.
 
-* All hidden genomic files in the dataservice with their controlled_access
-  field set to **null** should get `{empty_acl}`.
+* All visible genomic files in the dataservice with their `controlled_access`
+field set to **False** should get `{open_acl}`.
 
-* All other genomic files in the dataservice should get `{default_acl}`.
+* All visible genomic files in the dataservice with their `controlled_access`
+field set to **True** should get the `{default_acl}`. If the genomic file
+previously had an ACL containing the study KF ID, this will be replaced with
+the `{specimen_acl}` containing the PHS ID.
 
-* Each reported sample consent code should be added to each
-  `controlled_access=True` genomic file that has contribution from any
-  biospecimen(s) in the study with the reported sample external ID by adding
-  the `{consent_acl}` in addition to the default **IF AND ONLY IF** the genomic
-  file and its contributing biospecimen(s) are all visible in the dataservice,
-  **with the following exception:**
+* The `specimen_acl` is the unique set of the `consent_acl` from the visible
+specimens in the study which contribute to the genomic_file.
 
-  * Until indexd supports "and" composition rules, if a genomic file has
-    multiple contributing specimens with non-identical access control codes,
-    that genomic file should get `{default_acl}`. **Return or display an alert
-    for each such case.**
+* The `consent_acl` is composed of the study phs ID and the
+reported sample consent code of the sample, prepended with the dbgap
+prefix "/programs" (e.g. "/programs/phs001138.c1")
+
+* All other genomic files in the dataservice should get `{empty_acl}`
+indicating no access.
+
+
+

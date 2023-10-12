@@ -1,126 +1,160 @@
 {
-    "studies": {
-        "SD_00000000": {
-            "data_access_authority": "dbGaP",
-            "external_id": "phs999999"
-        }
-    },
-    "participants": {
-        "PT_11111111": {
-            "study_id": "SD_00000000",
-            "external_id": "test_subject_1"
-        },
-        "PT_22222222": {
-            "study_id": "SD_00000000",
-            "external_id": "test_subject_2"
-        }
-    },
-    "sequencing-centers": {
-        "SC_11111111": {
-            "name": "test_center"
-        }
-    },
-    "biospecimens": {
-        "BS_11111111": {
-            "participant_id": "PT_11111111",
-            "external_sample_id": "test_sample_1",
-            "sequencing_center_id": "SC_11111111",
-            "analyte_type": "DNA"
-        },
-        "BS_22222222": {
-            "participant_id": "PT_22222222",
-            "external_sample_id": "test_sample_2",
-            "sequencing_center_id": "SC_11111111",
-            "analyte_type": "DNA"
-        },
-        "BS_33333333": {
-            "participant_id": "PT_22222222",
-            "external_sample_id": "test_sample_3",
-            "sequencing_center_id": "SC_11111111",
-            "analyte_type": "DNA"
-        }
-    },
-    "diagnoses": {
-        "DG_11111111": {"participant_id": "PT_11111111"},
-        "DG_22222222": {"participant_id": "PT_22222222"}
-    },
-    "biospecimen-diagnoses": {
-        "BD_11111111": {
-            "biospecimen_id": "BS_11111111",
-            "diagnosis_id": "DG_11111111"
-        },
-        "BD_22222222": {
-            "biospecimen_id": "BS_22222222",
-            "diagnosis_id": "DG_22222222"
-        },
-        "BD_33333333": {
-            "biospecimen_id": "BS_33333333",
-            "diagnosis_id": "DG_22222222"
-        }
-    },
-    "genomic-files": {
-        "GF_00000000": {"hashes": {}, "size": 1, "urls": [], "controlled_access": false},
-        "GF_11111111": {"hashes": {}, "size": 1, "urls": [], "controlled_access": true},
-        "GF_22222222": {"hashes": {}, "size": 1, "urls": [], "controlled_access": true},
-        "GF_33333333": {"hashes": {}, "size": 1, "urls": [], "controlled_access": true},
-        "GF_44444444": {"hashes": {}, "size": 1, "urls": [], "controlled_access": false}
-    },
-    "biospecimen-genomic-files": {
-        "BG_00000000": {
-            "biospecimen_id": "BS_11111111",
-            "genomic_file_id": "GF_00000000"
-        },
-        "BG_11111111": {
-            "biospecimen_id": "BS_11111111",
-            "genomic_file_id": "GF_11111111"
-        },
-        "BG_22222222": {
-            "biospecimen_id": "BS_22222222",
-            "genomic_file_id": "GF_22222222"
-        },
-        "BG_33333333": {
-            "biospecimen_id": "BS_33333333",
-            "genomic_file_id": "GF_33333333"
-        },
-        "BG_44444444": {
-            "biospecimen_id": "BS_33333333",
-            "genomic_file_id": "GF_44444444"
-        }
-    },
-    "sequencing-experiments": {
-        "SE_11111111": {
-            "external_id": "SE_11111111", "sequencing_center_id": "SC_11111111",
-            "is_paired_end": false, "experiment_strategy": "WGS", "platform": "Not Applicable"
-        },
-        "SE_22222222": {
-            "external_id": "SE_22222222", "sequencing_center_id": "SC_11111111",
-            "is_paired_end": false, "experiment_strategy": "WGS", "platform": "Not Applicable"
-        },
-        "SE_33333333": {
-            "external_id": "SE_33333333", "sequencing_center_id": "SC_11111111",
-            "is_paired_end": false, "experiment_strategy": "WGS", "platform": "Not Applicable"
-        }
-    },
-    "sequencing-experiment-genomic-files": {
-        "SG_00000000": {
-            "sequencing_experiment_id": "SE_11111111",
-            "genomic_file_id": "GF_00000000"
-        },
-        "SG_11111111": {
-            "sequencing_experiment_id": "SE_11111111",
-            "genomic_file_id": "GF_11111111"
-        },
-        "SG_22222222": {
-            "sequencing_experiment_id": "SE_22222222",
-            "genomic_file_id": "GF_22222222"
-        },
-        "SG_33333333": {
-            "sequencing_experiment_id": "SE_33333333",
-            "genomic_file_id": "GF_33333333"
-        },
-        "SG_44444444": {
-            "sequencing_experiment_id": "SE_33333333",
-            "genomic_file_id": "GF_44444444"
-        }
+  "studies": {
+    "SD_00000000": {
+      "data_access_authority": "dbGaP",
+      "external_id": "phs999999"
     }
+  },
+  "participants": {
+    "PT_11111111": {
+      "study_id": "SD_00000000",
+      "external_id": "test_subject_1"
+    },
+    "PT_22222222": {
+      "study_id": "SD_00000000",
+      "external_id": "test_subject_2"
+    }
+  },
+  "sequencing-centers": {
+    "SC_11111111": {
+      "name": "test_center"
+    }
+  },
+  "biospecimens": {
+    "BS_11111111": {
+      "participant_id": "PT_11111111",
+      "external_sample_id": "test_sample_1",
+      "sequencing_center_id": "SC_11111111",
+      "analyte_type": "DNA"
+    },
+    "BS_22222222": {
+      "participant_id": "PT_22222222",
+      "external_sample_id": "test_sample_2",
+      "sequencing_center_id": "SC_11111111",
+      "analyte_type": "DNA"
+    },
+    "BS_33333333": {
+      "participant_id": "PT_22222222",
+      "external_sample_id": "test_sample_3",
+      "sequencing_center_id": "SC_11111111",
+      "analyte_type": "DNA"
+    }
+  },
+  "diagnoses": {
+    "DG_11111111": { "participant_id": "PT_11111111" },
+    "DG_22222222": { "participant_id": "PT_22222222" }
+  },
+  "biospecimen-diagnoses": {
+    "BD_11111111": {
+      "biospecimen_id": "BS_11111111",
+      "diagnosis_id": "DG_11111111"
+    },
+    "BD_22222222": {
+      "biospecimen_id": "BS_22222222",
+      "diagnosis_id": "DG_22222222"
+    },
+    "BD_33333333": {
+      "biospecimen_id": "BS_33333333",
+      "diagnosis_id": "DG_22222222"
+    }
+  },
+  "genomic-files": {
+    "GF_00000000": {
+      "hashes": {},
+      "size": 1,
+      "urls": [],
+      "controlled_access": false
+    },
+    "GF_11111111": {
+      "hashes": {},
+      "size": 1,
+      "urls": [],
+      "controlled_access": true
+    },
+    "GF_22222222": {
+      "hashes": {},
+      "size": 1,
+      "urls": [],
+      "controlled_access": true
+    },
+    "GF_33333333": {
+      "hashes": {},
+      "size": 1,
+      "urls": [],
+      "controlled_access": true
+    },
+    "GF_44444444": {
+      "hashes": {},
+      "size": 1,
+      "urls": [],
+      "controlled_access": false
+    }
+  },
+  "biospecimen-genomic-files": {
+    "BG_00000000": {
+      "biospecimen_id": "BS_11111111",
+      "genomic_file_id": "GF_00000000"
+    },
+    "BG_11111111": {
+      "biospecimen_id": "BS_11111111",
+      "genomic_file_id": "GF_11111111"
+    },
+    "BG_22222222": {
+      "biospecimen_id": "BS_22222222",
+      "genomic_file_id": "GF_22222222"
+    },
+    "BG_33333333": {
+      "biospecimen_id": "BS_33333333",
+      "genomic_file_id": "GF_33333333"
+    },
+    "BG_44444444": {
+      "biospecimen_id": "BS_33333333",
+      "genomic_file_id": "GF_44444444"
+    }
+  },
+  "sequencing-experiments": {
+    "SE_11111111": {
+      "external_id": "SE_11111111",
+      "sequencing_center_id": "SC_11111111",
+      "is_paired_end": false,
+      "experiment_strategy": "WGS",
+      "platform": "Not Applicable"
+    },
+    "SE_22222222": {
+      "external_id": "SE_22222222",
+      "sequencing_center_id": "SC_11111111",
+      "is_paired_end": false,
+      "experiment_strategy": "WGS",
+      "platform": "Not Applicable"
+    },
+    "SE_33333333": {
+      "external_id": "SE_33333333",
+      "sequencing_center_id": "SC_11111111",
+      "is_paired_end": false,
+      "experiment_strategy": "WGS",
+      "platform": "Not Applicable"
+    }
+  },
+  "sequencing-experiment-genomic-files": {
+    "SG_00000000": {
+      "sequencing_experiment_id": "SE_11111111",
+      "genomic_file_id": "GF_00000000"
+    },
+    "SG_11111111": {
+      "sequencing_experiment_id": "SE_11111111",
+      "genomic_file_id": "GF_11111111"
+    },
+    "SG_22222222": {
+      "sequencing_experiment_id": "SE_22222222",
+      "genomic_file_id": "GF_22222222"
+    },
+    "SG_33333333": {
+      "sequencing_experiment_id": "SE_33333333",
+      "genomic_file_id": "GF_33333333"
+    },
+    "SG_44444444": {
+      "sequencing_experiment_id": "SE_33333333",
+      "genomic_file_id": "GF_44444444"
+    }
+  }
 }

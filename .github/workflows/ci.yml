@@ -39,6 +39,7 @@ jobs:
 
       - name: 🐳 Start Dataservice docker-compose
         run: |
+          docker network create kf-data-stack
           ./bin/setup_dataservice.sh
 
       - name: 🐍 Setup Python
