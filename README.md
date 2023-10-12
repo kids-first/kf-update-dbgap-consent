@@ -25,12 +25,13 @@ The `--match_aliquot` flag will match dbGaP `submitted_sample_id` to `external_a
 `dbgapconsent SD_12345678 --server https://kf-api-dataservice.kidsfirstdrc.org --db_url postgresql://{USER_NAME}:{PASSWORD}@{PG_HOST}:{PG_PORT}/{PG_DBNAME} --dry_run --match_aliquot`
 
 ---
-
 ## ACL Definitions
 
-* study_phs: (e.g. "phs001138")
-* consent_acl: f"/programs/{study_phs}.c{consent_code}" (consent_code for the specimen) 
-* default_acl: set([{consent_acl} from visible biospecimens which contribute to the genomic file])
+* study_kf_id: e.g SD_12345678
+* default_acl: e.g. "/programs/{study_kf_id}"
+* study_phs: e.g. "phs001138"
+* consent_acl: f"/programs/{study_phs}.c{consent_code}" (consent_code for the specimen)
+* specimen_acl: unique([{consent_acl} from visible biospecimens which contribute to the genomic file])
 * open_acl: ["/open"]
 
 ## ACL Rules
@@ -64,9 +65,11 @@ The `--match_aliquot` flag will match dbGaP `submitted_sample_id` to `external_a
 field set to **False** should get `{open_acl}`.
 
 * All visible genomic files in the dataservice with their `controlled_access`
-field set to **True** should get the `{default_acl}`.
+field set to **True** should get the `{default_acl}`. If the genomic file
+previously had an ACL containing the study KF ID, this will be replaced with
+the `{specimen_acl}` containing the PHS ID.
 
-* The `default_acl` is the unique set of the `consent_acl` from the visible
+* The `specimen_acl` is the unique set of the `consent_acl` from the visible
 specimens in the study which contribute to the genomic_file.
 
 * The `consent_acl` is composed of the study phs ID and the
@@ -75,5 +78,6 @@ prefix "/programs" (e.g. "/programs/phs001138.c1")
 
 * All other genomic files in the dataservice should get `{empty_acl}`
 indicating no access.
+
 
 

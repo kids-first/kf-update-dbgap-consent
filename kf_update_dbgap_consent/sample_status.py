@@ -1,9 +1,11 @@
 """
 ## ACL Definitions
 
-* study_phs: (e.g. "phs001138")
+* study_kf_id: e.g SD_12345678
+* default_acl: e.g. "/programs/{study_kf_id}"
+* study_phs: e.g. "phs001138"
 * consent_acl: f"/programs/{study_phs}.c{consent_code}" (consent_code for the specimen)
-* default_acl: unique([{consent_acl} from visible biospecimens which contribute to the genomic file])
+* specimen_acl: unique([{consent_acl} from visible biospecimens which contribute to the genomic file])
 * open_acl: ["/open"]
 
 ## ACL Rules
@@ -39,9 +41,9 @@ field set to **False** should get `{open_acl}`.
 * All visible genomic files in the dataservice with their `controlled_access`
 field set to **True** should get the `{default_acl}`. If the genomic file
 previously had an ACL containing the study KF ID, this will be replaced with
-the `{default_acl}` containing the PHS ID.
+the `{specimen_acl}` containing the PHS ID.
 
-* The `default_acl` is the unique set of the `consent_acl` from the visible
+* The `specimen_acl` is the unique set of the `consent_acl` from the visible
 specimens in the study which contribute to the genomic_file.
 
 * The `consent_acl` is composed of the study phs ID and the
@@ -136,7 +138,7 @@ class ConsentProcessor:
         print(f"Found accession ID: {study_phs}")
         open_acl = {"/open"}
         empty_acl = set()
-        default_acl = [study_id]
+        default_acl = [f"/programs/{study_id}"]
         alerts = []
         patches = defaultdict(lambda: defaultdict(dict))
 
@@ -320,9 +322,9 @@ class ConsentProcessor:
                     """
                     Rule: All visible genomic files in the dataservice with
                     their `controlled_access` field set to **True** should get
-                    the `{default_acl}`.
+                    the `{specimen_acl}`.
 
-                    * The `default_acl` is the unique set of the `consent_acl`
+                    * The `specimen_acl` is the unique set of the `consent_acl`
                     from the visible specimens in the study which contribute to
                     the genomic_file.
 
